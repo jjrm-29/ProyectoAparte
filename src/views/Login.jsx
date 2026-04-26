@@ -14,69 +14,87 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
 
+    // 🔐 VALIDACIÓN BÁSICA
+    if (!email.includes("@")) {
+      setError("Ingresa un correo válido");
+      return;
+    }
+
+    if (password.length < 4) {
+      setError("La contraseña es muy corta");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: password,
       });
 
       if (error) throw error;
 
-      // Guardar usuario en localStorage (como ya lo haces en otros lugares)
       localStorage.setItem("usuario-supabase", email);
 
       navigate("/");
     } catch (err) {
-      setError(err.message || "Credenciales incorrectas. Intenta nuevamente.");
+      setError("Correo o contraseña incorrectos");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-page">
+    <div className="login-bg">
       <Container className="d-flex align-items-center justify-content-center min-vh-100">
-        <Row className="justify-content-center w-100">
-          <Col xs={12} sm={10} md={8} lg={5} xl={4}>
-            <Card className="login-card shadow-lg border-0 overflow-hidden">
+        <Row className="w-100 justify-content-center">
+          <Col md={5} lg={4}>
 
-              <div className="login-header text-center py-4">
-                <div className="display-1 mb-3">🛒</div>
-                <h2 className="fw-bold text-white mb-1">Bienvenido de nuevo</h2>
-                <p className="text-white-50">Inicia sesión para continuar</p>
+            <Card className="shadow-lg border-0 rounded-4 overflow-hidden">
+
+              {/* HEADER */}
+              <div className="bg-dark text-white text-center p-4">
+                <h3 className="fw-bold mb-1">Pulpería Chevez</h3>
+                <small className="text-white-50">Acceso al sistema</small>
               </div>
 
-              <Card.Body className="p-4 p-md-5">
-                {error && <Alert variant="danger" className="text-center">{error}</Alert>}
+              <Card.Body className="p-4">
+
+                {error && (
+                  <Alert variant="danger" className="text-center">
+                    {error}
+                  </Alert>
+                )}
 
                 <Form onSubmit={handleLogin}>
-                  <Form.Group className="mb-4">
-                    <Form.Label className="fw-semibold">Correo electrónico</Form.Label>
+
+                  {/* EMAIL */}
+                  <Form.Group className="mb-3">
+                    <Form.Label>Correo</Form.Label>
                     <Form.Control
                       type="email"
-                      placeholder="ejemplo@correo.com"
+                      placeholder="correo@ejemplo.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      required
-                      size="lg"
                     />
                   </Form.Group>
 
-                  <Form.Group className="mb-4">
-                    <Form.Label className="fw-semibold">Contraseña</Form.Label>
+                  {/* PASSWORD */}
+                  <Form.Group className="mb-3">
+                    <Form.Label>Contraseña</Form.Label>
                     <div className="position-relative">
                       <Form.Control
                         type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
+                        placeholder="********"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        required
-                        size="lg"
                       />
+
                       <Button
+                        type="button"
                         variant="link"
                         className="position-absolute top-50 end-0 translate-middle-y text-muted"
                         onClick={() => setShowPassword(!showPassword)}
@@ -86,36 +104,40 @@ const Login = () => {
                     </div>
                   </Form.Group>
 
+                  {/* BOTÓN */}
                   <Button
-                    variant="primary"
                     type="submit"
-                    className="w-100 py-3 mt-3 fw-bold fs-5"
+                    className="w-100 fw-bold mt-3"
                     disabled={loading}
                   >
                     {loading ? (
                       <>
-                        <Spinner animation="border" size="sm" className="me-2" />
-                        Iniciando sesión...
+                        <Spinner size="sm" className="me-2" />
+                        Entrando...
                       </>
-                    ) : "Iniciar Sesión"}
+                    ) : "Iniciar sesión"}
                   </Button>
+
                 </Form>
 
-                <div className="text-center mt-4">
-                  <small className="text-muted">
-                    ¿No tienes cuenta? Contacta al administrador
-                  </small>
-                </div>
               </Card.Body>
             </Card>
 
-            {/* Decoración inferior */}
-            <div className="text-center mt-4 text-white-50">
-              <small>Pulpería • Gestión 2026</small>
+            {/* FOOTER */}
+            <div className="text-center mt-3 text-muted">
+              <small>Sistema de ventas • 2026</small>
             </div>
+
           </Col>
         </Row>
       </Container>
+
+      {/* ESTILO */}
+      <style>{`
+        .login-bg {
+          background: linear-gradient(135deg, #0f172a, #1e293b);
+        }
+      `}</style>
     </div>
   );
 };

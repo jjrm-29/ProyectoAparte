@@ -1,13 +1,12 @@
 import { Navigate } from "react-router-dom";
+import { useAuth } from "../../views/AuthContext";
 
-function RutasProtegida({ children }) {
-  const usuario = true;
+const RutasProtegida = ({ children }) => {
+  const { user, loading } = useAuth();
 
-  if (!usuario) {
-    return <Navigate to="/login" />;
-  }
+  if (loading) return <p className="text-center mt-5">Cargando...</p>;
 
-  return children;
-}
+  return user ? children : <Navigate to="/login" />;
+};
 
 export default RutasProtegida;

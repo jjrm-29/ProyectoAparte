@@ -3,120 +3,115 @@ import { Container, Row, Col, Card, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 const Inicio = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
-    return (
-        <Container className="margen-superior-main py-5">
-            {/* Encabezado principal */}
-            <Row className="justify-content-center text-center mb-5">
-                <Col lg={8}>
-                    <h1 className="display-4 fw-bold text-dark mb-3">
-                        Bienvenido a la Pulpería
-                    </h1>
-                    <p className="lead text-muted mb-4">
-                        Tu tienda de confianza con los mejores productos 
-                        al mejor precio.
-                    </p>
-                    <div className="d-flex justify-content-center gap-3">
-                        <Button 
-                            variant="primary" 
-                            size="lg"
-                            onClick={() => navigate("/catalogo")}
-                        >
-                            Ver Catálogo
-                        </Button>
-                        <Button 
-                            variant="outline-primary" 
-                            size="lg"
-                            onClick={() => navigate("/categorias")}
-                        >
-                            Explorar Categorías
-                        </Button>
-                    </div>
-                </Col>
-            </Row>
+  return (
+    <Container fluid className="p-0">
 
-            {/* Tarjetas de acceso rápido */}
-            <Row className="g-4 mt-4">
-                <Col md={4}>
-                    <Card className="h-100 shadow-sm border-0 text-center categoria-card">
-                        <Card.Body className="py-5">
-                            <div className="display-1 mb-3">🛒</div>
-                            <Card.Title className="fw-bold fs-4">Catálogo</Card.Title>
-                            <Card.Text className="text-muted">
-                                Explora todos nuestros productos
-                            </Card.Text>
-                            <Button 
-                                variant="primary" 
-                                className="mt-3"
-                                onClick={() => navigate("/catalogo")}
-                            >
-                                Ir al Catálogo
-                            </Button>
-                        </Card.Body>
-                    </Card>
-                </Col>
+      {/* 🔥 HERO */}
+      <div
+        style={{
+          backgroundImage: "url('https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=1600')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          minHeight: "75vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            background: "rgba(0,0,0,0.65)",
+          }}
+        />
 
-                <Col md={4}>
-                    <Card className="h-100 shadow-sm border-0 text-center categoria-card">
-                        <Card.Body className="py-5">
-                            <div className="display-1 mb-3">📂</div>
-                            <Card.Title className="fw-bold fs-4">Categorías</Card.Title>
-                            <Card.Text className="text-muted">
-                                Encuentra productos por categoría
-                            </Card.Text>
-                            <Button 
-                                variant="primary" 
-                                className="mt-3"
-                                onClick={() => navigate("/categorias")}
-                            >
-                                Ver Categorías
-                            </Button>
-                        </Card.Body>
-                    </Card>
-                </Col>
+        <div className="text-center text-white position-relative">
+          <h1 className="display-4 fw-bold mb-3">Pulpería Chevez</h1>
+          <p className="lead mb-4">
+            Control y análisis inteligente de tu negocio
+          </p>
 
-                <Col md={4}>
-                    <Card className="h-100 shadow-sm border-0 text-center categoria-card">
-                        <Card.Body className="py-5">
-                            <div className="display-1 mb-3">📦</div>
-                            <Card.Title className="fw-bold fs-4">Productos</Card.Title>
-                            <Card.Text className="text-muted">
-                                Lista completa de todos los productos
-                            </Card.Text>
-                            <Button 
-                                variant="primary" 
-                                className="mt-3"
-                                onClick={() => navigate("/productos")}
-                            >
-                                Ver Productos
-                            </Button>
-                        </Card.Body>
-                    </Card>
-                </Col>
-            </Row>
+          <div className="d-flex justify-content-center gap-3 flex-wrap">
+            <Button
+              variant="success"
+              size="lg"
+              onClick={() => navigate("/catalogo")}
+            >
+              🛒 Catálogo
+            </Button>
 
-            {/* Sección de información */}
-            <Row className="mt-5 pt-5 border-top">
-                <Col md={6}>
-                    <h4 className="fw-bold mb-3">¿Por qué elegirnos?</h4>
-                    <ul className="list-unstyled">
-                        <li className="mb-2">✅ Productos de calidad</li>
-                        <li className="mb-2">✅ Precios competitivos</li>
-                        <li className="mb-2">✅ Entrega rápida</li>
-                        <li className="mb-2">✅ Atención personalizada</li>
-                    </ul>
-                </Col>
-                <Col md={6}>
-                    <h4 className="fw-bold mb-3">Horario de atención</h4>
-                    <p className="text-muted">
-                        Lunes a Sábado: 7:00 AM - 8:00 PM<br />
-                        Domingo: 8:00 AM - 2:00 PM
-                    </p>
-                </Col>
-            </Row>
-        </Container>
-    );
+            <Button
+              variant="outline-light"
+              size="lg"
+              onClick={() => navigate("/productos")}
+            >
+              📦 Productos
+            </Button>
+          </div>
+
+          {/* acceso discreto */}
+          <div className="mt-3">
+            <Button
+              variant="dark"
+              size="sm"
+              onClick={() => navigate("/dashboard")}
+            >
+              📊 Ver análisis
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* 🔥 TARJETAS (REDUCIDAS A 2) */}
+      <Container className="py-5">
+        <Row className="g-4 justify-content-center">
+
+          <Col md={5}>
+            <Card className="shadow border-0 text-center p-4 rounded-4 hover-scale">
+              <div className="fs-1 mb-3">📂</div>
+              <h5 className="fw-bold">Categorías</h5>
+              <p className="text-muted">Organiza tus productos fácilmente</p>
+              <Button onClick={() => navigate("/categorias")}>
+                Ver categorías
+              </Button>
+            </Card>
+          </Col>
+
+          <Col md={5}>
+            <Card className="shadow border-0 text-center p-4 rounded-4 hover-scale">
+              <div className="fs-1 mb-3">📊</div>
+              <h5 className="fw-bold">Dashboard</h5>
+              <p className="text-muted">Analiza ventas y rendimiento</p>
+              <Button onClick={() => navigate("/dashboard")}>
+                Ir al análisis
+              </Button>
+            </Card>
+          </Col>
+
+        </Row>
+      </Container>
+
+      {/* 🔥 ESTILOS */}
+      <style>
+        {`
+        .hover-scale {
+          transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hover-scale:hover {
+          transform: translateY(-5px);
+          box-shadow: 0px 10px 25px rgba(0,0,0,0.15);
+        }
+        `}
+      </style>
+
+    </Container>
+  );
 };
 
 export default Inicio;

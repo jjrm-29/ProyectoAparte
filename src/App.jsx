@@ -10,6 +10,9 @@ import Login from "./views/Login";
 import RutasProtegida from "./components/rutas/RutasProtegida";
 import Pagina404 from "./views/Pagina404";
 import ProductoDetalle from "./views/ProductoDetalle";   
+import DashboardVentas from "./views/DashboardVentas";
+import Ventas from "./views/Ventas";
+
 
 import "./App.css";
 
@@ -27,6 +30,9 @@ const App = () => {
           <Route path="/categorias" element={<RutasProtegida><Categorias /></RutasProtegida>} />
           <Route path="/catalogo" element={<Catalogo />} />
           <Route path="/productos" element={<RutasProtegida><Productos /></RutasProtegida>} />
+          <Route path="/dashboard" element={<DashboardVentas />} />
+          <Route path="/ventas" element={<Ventas />} />
+          
           
           <Route 
             path="/producto/:id" 

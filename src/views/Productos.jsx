@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import TarjetaCatalogo from "../../src/components/catalogo/TarjetaCatalogo";
 import FormularioRegistroProducto from "../../src/components/productos/FormularioRegistroProducto";
 import ModalEdicionProducto from "../../src/components/productos/ModalEdicionProducto";
-import ModalEliminacion from "../../src/components/productos/ModalEliminacionProducto";   // ← Nuevo
+import ModalEliminacion from "../components/productos/ModalEliminacionProducto";   // ← Nuevo
 
 const Productos = () => {
     const navigate = useNavigate();
@@ -46,12 +46,12 @@ const Productos = () => {
     }, []);
 
     const productosFiltrados = productos.filter(producto => {
-        const coincideBusqueda =
+        const coincideBusqueda = 
             producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
             producto.descripcion.toLowerCase().includes(busqueda.toLowerCase());
 
-        const coincideCategoria = categoriaFiltro === "Todas" ||
-            producto.categoria === categoriaFiltro;
+        const coincideCategoria = categoriaFiltro === "Todas" || 
+                                  producto.categoria === categoriaFiltro;
 
         return coincideBusqueda && coincideCategoria;
     });
@@ -138,9 +138,9 @@ const Productos = () => {
                     <p className="lead text-muted">Gestiona el inventario de tu pulpería</p>
                 </div>
 
-                <Button
-                    variant="success"
-                    size="lg"
+                <Button 
+                    variant="success" 
+                    size="lg" 
                     className="shadow-sm px-4 d-flex align-items-center gap-2"
                     onClick={handleNuevoProducto}
                 >
@@ -200,8 +200,8 @@ const Productos = () => {
                     {productosFiltrados.length > 0 ? (
                         productosFiltrados.map((producto) => (
                             <Col key={producto.id}>
-                                <TarjetaCatalogo
-                                    producto={producto}
+                                <TarjetaCatalogo 
+                                    producto={producto} 
                                     onEditar={() => handleEditarProducto(producto)}
                                     onEliminar={() => handleEliminarProducto(producto)}   // ← Nuevo
                                 />

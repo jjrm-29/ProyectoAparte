@@ -3,7 +3,7 @@ import React from "react";
 import { Card, Button } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
-const TarjetaCatalogo = ({ producto, onEditar }) => {
+const TarjetaCatalogo = ({ producto, onEditar, onEliminar }) => {
     const navigate = useNavigate();
 
     const agregarAlCarrito = () => {
@@ -53,18 +53,28 @@ const TarjetaCatalogo = ({ producto, onEditar }) => {
                         >
                             Agregar al carrito
                         </Button>
+
                         <Button 
                             variant="outline-secondary"
                             onClick={verDetalle}
                         >
                             Ver detalles
                         </Button>
+
                         <Button 
                             variant="outline-warning"
                             size="sm"
                             onClick={() => onEditar && onEditar(producto)}
                         >
                             ✏️ Editar
+                        </Button>
+
+                        <Button 
+                            variant="outline-danger"
+                            size="sm"
+                            onClick={() => onEliminar && onEliminar(producto)}
+                        >
+                            🗑️ Eliminar
                         </Button>
                     </div>
                 </div>
