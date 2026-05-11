@@ -14,6 +14,8 @@ const Encabezado = () => {
     const esLogin = location.pathname === "/login";
     const usuario = localStorage.getItem("usuario-supabase");
 
+    const esActivo = (ruta) => location.pathname === ruta;
+
     const manejarNavegacion = (ruta) => {
         navigate(ruta);
         setShowOffcanvas(false);
@@ -25,18 +27,15 @@ const Encabezado = () => {
             localStorage.removeItem("usuario-supabase");
             navigate("/login");
         } catch (err) {
-            console.error(err.message);
+            console.error("Error al cerrar sesión:", err.message);
         }
     };
-
-    // 🔥 activa link actual
-    const esActivo = (ruta) => location.pathname === ruta;
 
     return (
         <Navbar expand="md" fixed="top" className="navbar-pro shadow" variant="dark">
             <Container>
 
-                {/* LOGO */}
+                {/* Logo */}
                 <Navbar.Brand
                     onClick={() => manejarNavegacion("/")}
                     className="d-flex align-items-center gap-2"
@@ -46,12 +45,12 @@ const Encabezado = () => {
                     <span className="fw-bold fs-5">Pulpería</span>
                 </Navbar.Brand>
 
-                {/* BOTÓN MOBILE */}
+                {/* Toggle Móvil */}
                 {!esLogin && (
                     <Navbar.Toggle onClick={() => setShowOffcanvas(true)} />
                 )}
 
-                {/* MENÚ */}
+                {/* Offcanvas - Menú Móvil */}
                 <Navbar.Offcanvas
                     placement="end"
                     show={showOffcanvas}
@@ -73,10 +72,10 @@ const Encabezado = () => {
                                 </Nav.Link>
 
                                 <Nav.Link
-                                    onClick={() => manejarNavegacion("/catalogo")}
-                                    className={esActivo("/catalogo") ? "active-link" : ""}
+                                    onClick={() => manejarNavegacion("/categorias")}
+                                    className={esActivo("/categorias") ? "active-link" : ""}
                                 >
-                                    Catálogo
+                                    Categorías
                                 </Nav.Link>
 
                                 <Nav.Link
@@ -87,10 +86,10 @@ const Encabezado = () => {
                                 </Nav.Link>
 
                                 <Nav.Link
-                                    onClick={() => manejarNavegacion("/categorias")}
-                                    className={esActivo("/categorias") ? "active-link" : ""}
+                                    onClick={() => manejarNavegacion("/catalogo")}
+                                    className={esActivo("/catalogo") ? "active-link" : ""}
                                 >
-                                    Categorías
+                                    Catálogo
                                 </Nav.Link>
 
                                 <Nav.Link
@@ -100,7 +99,7 @@ const Encabezado = () => {
                                     📊 Dashboard
                                 </Nav.Link>
 
-                                {/* USUARIO */}
+                                {/* Usuario y Acciones */}
                                 {usuario && (
                                     <div className="d-flex align-items-center gap-2 ms-md-3 mt-3 mt-md-0">
                                         <Badge bg="light" text="dark" className="px-3 py-2">
@@ -123,9 +122,10 @@ const Encabezado = () => {
                         )}
                     </Offcanvas.Body>
                 </Navbar.Offcanvas>
+
             </Container>
 
-            {/* 🔥 ESTILOS PRO */}
+            {/* Estilos internos */}
             <style>
                 {`
                 .navbar-pro {

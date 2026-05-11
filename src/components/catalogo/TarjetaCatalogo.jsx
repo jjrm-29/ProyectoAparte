@@ -1,85 +1,217 @@
-// src/components/TarjetaCatalogo.jsx
-import React from "react";
-import { Card, Button } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Card, Badge, Modal, Button } from "react-bootstrap";
 
-const TarjetaCatalogo = ({ producto, onEditar, onEliminar }) => {
-    const navigate = useNavigate();
+const TarjetaCatalogo = ({
+    producto,
+    onEditar,
+    onEliminar
+}) => {
 
-    const agregarAlCarrito = () => {
-        alert(`✅ ${producto.nombre} agregado al carrito`);
-    };
+    const [mostrarModal, setMostrarModal] = useState(false);
 
-    const verDetalle = () => {
-        navigate(`/producto/${producto.id}`);
-    };
+    const descripcion = producto.descripcion || "";
 
-    const handleImageError = (e) => {
-        e.target.src = "https://via.placeholder.com/600x600/8B6F47/ffffff?text=Sin+Imagen";
-    };
+    const previsualizacionTexto =
+        descripcion.length > 50
+            ? descripcion.substring(0, 50) + "..."
+            : descripcion;
+
+    const tieneMasTexto = descripcion.length > 50;
 
     return (
-        <Card className="h-100 shadow-sm border-0 product-card overflow-hidden">
-            <Card.Img 
-                variant="top" 
-                src={producto.imagen}
-                className="img-fluid"
-                style={{ 
-                    height: "260px", 
-                    objectFit: "cover" 
+        <>
+            <Card
+                className="h-100 border-0 shadow-lg overflow-hidden"
+                style={{
+                    transition: "transform 0.3s, box-shadow 0.3s",
+                    cursor: "pointer"
                 }}
-                alt={producto.nombre}
-                onError={handleImageError}
-            />
-            
-            <Card.Body className="d-flex flex-column p-4">
-                <Card.Title className="fw-bold mb-2 fs-5">
-                    {producto.nombre}
-                </Card.Title>
-                
-                <Card.Text className="text-muted small flex-grow-1">
-                    {producto.descripcion}
-                </Card.Text>
+                onClick={() => setMostrarModal(true)}
+            >
 
-                <div className="mt-auto pt-3">
-                    <h4 className="text-success fw-bold mb-3">
-                        C$ {producto.precio.toLocaleString()}
-                    </h4>
-                    
-                    <div className="d-grid gap-2">
-                        <Button 
-                            variant="primary"
-                            onClick={agregarAlCarrito}
-                        >
-                            Agregar al carrito
-                        </Button>
+                {/* IMAGEN */}
+                <div
+                    className="ratio ratio-1x1 bg-light"
+                    style={{ overflow: "hidden" }}
+                >
 
-                        <Button 
-                            variant="outline-secondary"
-                            onClick={verDetalle}
-                        >
-                            Ver detalles
-                        </Button>
+                    {producto.imagen ? (
 
-                        <Button 
-                            variant="outline-warning"
-                            size="sm"
-                            onClick={() => onEditar && onEditar(producto)}
-                        >
-                            ✏️ Editar
-                        </Button>
+                        <img
+                            src={producto.imagen}
+                            alt={producto.nombre}
+                            className="card-img-top object-fit-cover"
+                            loading="lazy"
+                            style={{
+                                width: "100%",
+                                height: "100%",
+                                objectFit: "cover"
+                            }}
+                        />
 
-                        <Button 
-                            variant="outline-danger"
-                            size="sm"
-                            onClick={() => onEliminar && onEliminar(producto)}
-                        >
-                            🗑️ Eliminar
-                        </Button>
-                    </div>
+                    ) : (
+
+                        <div className="d-flex align-items-center justify-content-center h-100 bg-secondary-subtle">
+                            <i className="bi bi-image text-muted fs-1"></i>
+                        </div>
+
+                    )}
+
                 </div>
-            </Card.Body>
-        </Card>
+
+                {/* CONTENIDO */}
+                <Card.Body className="d-flex flex-column p-3">
+
+                    <Card.Title className="h6 fw-bold text-dark mb-2">
+                        {producto.nombre}
+                    </Card.Title>
+
+                    <Card.Text className="text-muted small flex-grow-1">
+
+                        {previsualizacionTexto}
+
+                        {tieneMasTexto && (
+                            <span className="text-primary ms-1">
+                                Leer más
+                            </span>
+                        )}
+
+                    </Card.Text>
+
+                    <div className="mb-3">
+
+                        <Badge bg="secondary" pill>
+                            {producto.categoria || "Sin categoría"}
+                        </Badge>
+
+                    </div>
+
+                    <hr />
+
+                    <div className="mt-auto pt-2">
+
+                        <h4 className="text-success fw-bold mb-1">
+                            C${parseFloat(producto.precio || 0).toFixed(2)}
+                        </h4>
+
+                        <small className="text-muted">
+                            Stock: {producto.stock}
+                        </small>
+
+                        {/* BOTONES */}
+                        <div className="d-flex gap-2 mt-3">
+
+                            <Button
+                                variant="warning"
+                                size="sm"
+                                className="w-50"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEditar(producto);
+                                }}
+                            >
+                                Editar
+                            </Button>
+
+                            <Button
+                                variant="danger"
+                                size="sm"
+                                className="w-50"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEliminar(producto);
+                                }}
+                            >
+                                Eliminar
+                            </Button>
+
+                        </div>
+
+                    </div>
+
+                </Card.Body>
+
+            </Card>
+
+            {/* MODAL */}
+            <Modal
+                show={mostrarModal}
+                onHide={() => setMostrarModal(false)}
+                centered
+                size="lg"
+            >
+
+                <Modal.Header closeButton>
+                    <Modal.Title>
+                        {producto.nombre}
+                    </Modal.Title>
+                </Modal.Header>
+
+                <Modal.Body>
+
+                    <div className="row g-4">
+
+                        <div className="col-md-5">
+
+                            {producto.imagen ? (
+
+                                <img
+                                    src={producto.imagen}
+                                    alt={producto.nombre}
+                                    className="img-fluid rounded"
+                                    style={{
+                                        width: "100%",
+                                        objectFit: "cover"
+                                    }}
+                                />
+
+                            ) : (
+
+                                <div className="bg-light rounded d-flex align-items-center justify-content-center p-5">
+                                    <i className="bi bi-image fs-1 text-muted"></i>
+                                </div>
+
+                            )}
+
+                        </div>
+
+                        <div className="col-md-7">
+
+                            <Badge bg="secondary" className="mb-3">
+                                {producto.categoria}
+                            </Badge>
+
+                            <h3 className="text-success fw-bold">
+                                C${parseFloat(producto.precio || 0).toFixed(2)}
+                            </h3>
+
+                            <p className="mt-3">
+                                {producto.descripcion}
+                            </p>
+
+                            <p>
+                                <strong>Stock:</strong> {producto.stock}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </Modal.Body>
+
+                <Modal.Footer>
+
+                    <Button
+                        variant="secondary"
+                        onClick={() => setMostrarModal(false)}
+                    >
+                        Cerrar
+                    </Button>
+
+                </Modal.Footer>
+
+            </Modal>
+        </>
     );
 };
 
