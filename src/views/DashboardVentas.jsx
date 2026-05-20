@@ -5,7 +5,8 @@ import {
   Col,
   Card,
   Spinner,
-  Table
+  Table,
+  Badge
 } from "react-bootstrap";
 
 import { supabase } from "../database/supabaseconfig";
@@ -47,6 +48,7 @@ const DashboardVentas = () => {
   };
 
   // KPIs
+
   const totalIngresos = ventas.reduce(
     (acc, venta) => acc + Number(venta.total || 0),
     0
@@ -61,123 +63,315 @@ const DashboardVentas = () => {
 
   return (
 
-    <Container className="py-4">
+    <div className="dashboard-bg py-5">
 
-      <h2 className="mb-4 fw-bold">
-        📊 Dashboard de Ventas
-      </h2>
+      <Container>
 
-      {loading ? (
+        {/* HEADER */}
 
-        <div className="text-center py-5">
+        <div className="mb-5">
 
-          <Spinner animation="border" variant="primary" />
+          <Badge bg="primary" className="px-3 py-2 rounded-pill mb-3">
+            PANEL ADMINISTRATIVO
+          </Badge>
 
-          <p className="mt-3">
-            Cargando datos...
+          <h1 className="fw-bold text-white display-5">
+            Dashboard de Ventas
+          </h1>
+
+          <p className="text-light opacity-75">
+            Visualiza estadísticas, ingresos y rendimiento de tu negocio
           </p>
 
         </div>
 
-      ) : (
+        {loading ? (
 
-        <>
+          <div className="text-center py-5">
 
-          {/* KPIs */}
+            <Spinner animation="border" variant="light" />
 
-          <Row className="mb-4 g-4">
+            <p className="mt-3 text-light">
+              Cargando datos...
+            </p>
 
-            <Col md={4}>
+          </div>
 
-              <Card className="shadow-sm border-0 rounded-4 p-3">
+        ) : (
 
-                <h5>💰 Ingresos</h5>
+          <>
 
-                <h3>
-                  C$ {totalIngresos.toFixed(2)}
-                </h3>
+            {/* KPI */}
 
-              </Card>
+            <Row className="g-4 mb-5">
 
-            </Col>
+              <Col md={4}>
 
-            <Col md={4}>
+                <Card className="kpi-card ingresos-card border-0 shadow-lg rounded-4">
 
-              <Card className="shadow-sm border-0 rounded-4 p-3">
+                  <Card.Body>
 
-                <h5>🧾 Ventas</h5>
+                    <div className="d-flex justify-content-between align-items-center">
 
-                <h3>{totalVentas}</h3>
+                      <div>
 
-              </Card>
+                        <p className="kpi-title">
+                          INGRESOS
+                        </p>
 
-            </Col>
+                        <h2 className="fw-bold text-white">
+                          C$ {totalIngresos.toFixed(2)}
+                        </h2>
 
-            <Col md={4}>
+                      </div>
 
-              <Card className="shadow-sm border-0 rounded-4 p-3">
+                      <div className="icon-circle">
+                        💰
+                      </div>
 
-                <h5>📦 Productos Vendidos</h5>
+                    </div>
 
-                <h3>{totalProductos}</h3>
+                  </Card.Body>
 
-              </Card>
+                </Card>
 
-            </Col>
+              </Col>
 
-          </Row>
+              <Col md={4}>
 
-          {/* TABLA */}
+                <Card className="kpi-card ventas-card border-0 shadow-lg rounded-4">
 
-          <Card className="shadow-sm border-0 rounded-4 p-3">
+                  <Card.Body>
 
-            <h5 className="mb-3">
-              Detalle de Ventas
-            </h5>
+                    <div className="d-flex justify-content-between align-items-center">
 
-            <Table responsive hover striped>
+                      <div>
 
-              <thead>
+                        <p className="kpi-title">
+                          VENTAS
+                        </p>
 
-                <tr>
+                        <h2 className="fw-bold text-white">
+                          {totalVentas}
+                        </h2>
 
-                  <th>ID</th>
-                  <th>Cantidad</th>
-                  <th>Total</th>
+                      </div>
 
-                </tr>
+                      <div className="icon-circle">
+                        📊
+                      </div>
 
-              </thead>
+                    </div>
 
-              <tbody>
+                  </Card.Body>
 
-                {ventas.map((venta) => (
+                </Card>
 
-                  <tr key={venta.id_venta}>
+              </Col>
 
-                    <td>{venta.id_venta}</td>
+              <Col md={4}>
 
-                    <td>{venta.cantidad}</td>
+                <Card className="kpi-card productos-card border-0 shadow-lg rounded-4">
 
-                    <td>
-                      C$ {Number(venta.total).toFixed(2)}
-                    </td>
+                  <Card.Body>
 
-                  </tr>
+                    <div className="d-flex justify-content-between align-items-center">
 
-                ))}
+                      <div>
 
-              </tbody>
+                        <p className="kpi-title">
+                          PRODUCTOS
+                        </p>
 
-            </Table>
+                        <h2 className="fw-bold text-white">
+                          {totalProductos}
+                        </h2>
 
-          </Card>
+                      </div>
 
-        </>
+                      <div className="icon-circle">
+                        📦
+                      </div>
 
-      )}
+                    </div>
 
-    </Container>
+                  </Card.Body>
+
+                </Card>
+
+              </Col>
+
+            </Row>
+
+            {/* TABLA */}
+
+            <Card className="border-0 rounded-4 shadow-lg table-card">
+
+              <Card.Body className="p-4">
+
+                <div className="d-flex justify-content-between align-items-center mb-4">
+
+                  <div>
+
+                    <h4 className="fw-bold mb-1">
+                      Historial de Ventas
+                    </h4>
+
+                    <p className="text-muted mb-0">
+                      Últimos registros almacenados
+                    </p>
+
+                  </div>
+
+                </div>
+
+                <Table responsive hover className="align-middle custom-table">
+
+                  <thead>
+
+                    <tr>
+
+                      <th>ID</th>
+                      <th>Cantidad</th>
+                      <th>Total</th>
+                      <th>Estado</th>
+
+                    </tr>
+
+                  </thead>
+
+                  <tbody>
+
+                    {ventas.map((venta) => (
+
+                      <tr key={venta.id_venta}>
+
+                        <td>
+                          <span className="fw-semibold">
+                            #{venta.id_venta}
+                          </span>
+                        </td>
+
+                        <td>
+
+                          <Badge bg="info" className="px-3 py-2 rounded-pill">
+                            {venta.cantidad}
+                          </Badge>
+
+                        </td>
+
+                        <td className="fw-bold text-success">
+
+                          C$ {Number(venta.total).toFixed(2)}
+
+                        </td>
+
+                        <td>
+
+                          <Badge bg="success" className="px-3 py-2 rounded-pill">
+                            Completada
+                          </Badge>
+
+                        </td>
+
+                      </tr>
+
+                    ))}
+
+                  </tbody>
+
+                </Table>
+
+              </Card.Body>
+
+            </Card>
+
+          </>
+
+        )}
+
+      </Container>
+
+      {/* ESTILOS */}
+
+      <style>{`
+
+        .dashboard-bg{
+          min-height:100vh;
+          background:
+            linear-gradient(135deg,#0f172a,#1e293b,#111827);
+        }
+
+        .kpi-card{
+          overflow:hidden;
+          transition:.3s;
+        }
+
+        .kpi-card:hover{
+          transform:translateY(-5px);
+        }
+
+        .ingresos-card{
+          background:linear-gradient(135deg,#16a34a,#22c55e);
+        }
+
+        .ventas-card{
+          background:linear-gradient(135deg,#2563eb,#3b82f6);
+        }
+
+        .productos-card{
+          background:linear-gradient(135deg,#7c3aed,#8b5cf6);
+        }
+
+        .kpi-title{
+          color:rgba(255,255,255,.75);
+          margin-bottom:5px;
+          font-size:.85rem;
+          letter-spacing:1px;
+        }
+
+        .icon-circle{
+          width:60px;
+          height:60px;
+          border-radius:50%;
+          background:rgba(255,255,255,.15);
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          font-size:1.5rem;
+        }
+
+        .table-card{
+          background:#ffffff;
+        }
+
+        .custom-table thead{
+          background:#f1f5f9;
+        }
+
+        .custom-table thead th{
+          border:none;
+          padding:15px;
+          color:#334155;
+          font-weight:700;
+        }
+
+        .custom-table tbody td{
+          padding:16px;
+          border-color:#f1f5f9;
+        }
+
+        .custom-table tbody tr{
+          transition:.2s;
+        }
+
+        .custom-table tbody tr:hover{
+          background:#f8fafc;
+        }
+
+      `}</style>
+
+    </div>
   );
 };
 
