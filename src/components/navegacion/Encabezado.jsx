@@ -93,6 +93,13 @@ const Encabezado = () => {
                                 </Nav.Link>
 
                                 <Nav.Link
+                                    onClick={() => manejarNavegacion("/ventas")}
+                                    className={esActivo("/ventas") ? "active-link" : ""}
+                                >
+                                    🧾 Ventas
+                                </Nav.Link>
+
+                                <Nav.Link
                                     onClick={() => manejarNavegacion("/dashboard")}
                                     className={esActivo("/dashboard") ? "active-link" : ""}
                                 >
@@ -111,10 +118,6 @@ const Encabezado = () => {
                                             className="text-danger fw-semibold"
                                         >
                                             Salir
-                                        </Nav.Link>
-
-                                        <Nav.Link onClick={() => manejarNavegacion("/ventas")}>
-                                            🧾 Ventas
                                         </Nav.Link>
                                     </div>
                                 )}

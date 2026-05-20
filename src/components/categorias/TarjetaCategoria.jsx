@@ -1,116 +1,105 @@
 import React from "react";
-import { Card, Button, Badge, OverlayTrigger, Tooltip } from "react-bootstrap";
-import { PencilSquare, Trash3 } from "react-bootstrap-icons";
-
-
+import { Row, Col, Card, Button } from "react-bootstrap";
 
 const TarjetaCategoria = ({
-    categoria,
-    onVerProductos,
-    onEditar,
-    onEliminar
+    categorias,
+    abrirModalEdicion,
+    abrirModalEliminacion
 }) => {
-    const { id, nombre, descripcion, imagen, color, count } = categoria;
 
     return (
-        <Card
-            className="h-100 shadow-sm border-0 categoria-card overflow-hidden"
-            onClick={() => onVerProductos(nombre)}
-            style={{ cursor: "pointer", transition: "all 0.3s ease" }}
-        >
-            {/* Imagen con overlay sutil */}
-            <div className="position-relative">
-                <Card.Img
-                    variant="top"
-                    src={imagen}
-                    style={{
-                        height: "235px",
-                        objectFit: "cover"
-                    }}
-                    alt={nombre}
-                />
 
-                {/* Overlay con número de productos */}
-                <div
-                    className="position-absolute top-0 end-0 m-3"
-                    style={{
-                        backgroundColor: "rgba(0,0,0,0.6)",
-                        color: "white",
-                        padding: "4px 10px",
-                        borderRadius: "20px",
-                        fontSize: "0.85rem",
-                        fontWeight: "600"
-                    }}
+        <Row className="g-4">
+
+            {categorias.map((categoria) => (
+
+                <Col
+                    xs={12}
+                    sm={6}
+                    key={categoria.id_categoria}
                 >
-                    {count}
-                </div>
-            </div>
 
-            <Card.Body className="d-flex flex-column p-4">
-                {/* Icono circular */}
-                <div
-                    className="rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center shadow-sm"
-                    style={{
-                        width: "78px",
-                        height: "78px",
-                        backgroundColor: `${color}15`,
-                        color: color,
-                        fontSize: "2.8rem",
-                        border: `3px solid ${color}30`,
-                        boxShadow: `0 0 15px ${color}40`
-                    }}
-                >
-                    🛒
-                </div>
+                    <Card className="border-0 shadow-sm rounded-4 h-100">
 
-                {/* Nombre de la categoría */}
-                <Card.Title className="text-center fw-bold fs-4 mb-3 text-dark">
-                    {nombre}
-                </Card.Title>
+                        <Card.Body className="p-4">
 
-                {/* Descripción */}
-                <Card.Text className="text-center text-muted flex-grow-1 mb-4" style={{ fontSize: "0.97rem" }}>
-                    {descripcion}
-                </Card.Text>
+                            <div className="d-flex justify-content-between align-items-start mb-3">
 
-                {/* Botones de acción */}
-                <div className="d-flex gap-2 mt-auto">
-                    <OverlayTrigger
-                        placement="top"
-                        overlay={<Tooltip>Editar categoría</Tooltip>}
-                    >
-                        <Button
-                            variant="outline-primary"
-                            className="flex-fill"
-                            size="sm"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEditar(categoria);
-                            }}
-                        >
-                            <PencilSquare className="me-1" /> Editar
-                        </Button>
-                    </OverlayTrigger>
+                                <div>
 
-                    <OverlayTrigger
-                        placement="top"
-                        overlay={<Tooltip>Eliminar categoría</Tooltip>}
-                    >
-                        <Button
-                            variant="outline-danger"
-                            className="flex-fill"
-                            size="sm"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onEliminar(categoria);
-                            }}
-                        >
-                            <Trash3 className="me-1" /> Eliminar
-                        </Button>
-                    </OverlayTrigger>
-                </div>
-            </Card.Body>
-        </Card>
+                                    <h5 className="fw-bold text-dark mb-1">
+                                        {categoria.nombre_categoria}
+                                    </h5>
+
+                                    <small className="text-muted">
+                                        ID: {categoria.id_categoria}
+                                    </small>
+
+                                </div>
+
+                                <div
+                                    className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
+                                    style={{
+                                        width: "50px",
+                                        height: "50px"
+                                    }}
+                                >
+
+                                    <i className="bi bi-tags-fill text-primary"></i>
+
+                                </div>
+
+                            </div>
+
+                            <p
+                                className="text-muted mb-4"
+                                style={{
+                                    minHeight: "60px"
+                                }}
+                            >
+                                {categoria.descripcion_categoria}
+                            </p>
+
+                            <div className="d-flex gap-2">
+
+                                <Button
+                                    variant="outline-warning"
+                                    className="w-100 rounded-3"
+                                    onClick={() =>
+                                        abrirModalEdicion(categoria)
+                                    }
+                                >
+
+                                    <i className="bi bi-pencil-square me-2"></i>
+                                    Editar
+
+                                </Button>
+
+                                <Button
+                                    variant="outline-danger"
+                                    className="w-100 rounded-3"
+                                    onClick={() =>
+                                        abrirModalEliminacion(categoria)
+                                    }
+                                >
+
+                                    <i className="bi bi-trash3-fill me-2"></i>
+                                    Eliminar
+
+                                </Button>
+
+                            </div>
+
+                        </Card.Body>
+
+                    </Card>
+
+                </Col>
+
+            ))}
+
+        </Row>
+
     );
 };
 

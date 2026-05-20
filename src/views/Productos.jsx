@@ -8,8 +8,6 @@ import {
     Spinner
 } from "react-bootstrap";
 
-import { useNavigate } from "react-router-dom";
-
 import { supabase } from "../database/supabaseconfig";
 
 import FormularioRegistroProducto from "../../src/components/productos/FormularioRegistroProducto";
@@ -23,8 +21,6 @@ import NotificacionOperacion from "../components/NotificacionOperacion";
 import Paginacion from "../components/ordenamiento/Paginacion";
 
 const Productos = () => {
-
-    const navigate = useNavigate();
 
     const [productos, setProductos] = useState([]);
     const [productosFiltrados, setProductosFiltrados] = useState([]);
@@ -56,14 +52,20 @@ const Productos = () => {
         cargarProductos();
     }, []);
 
+    // =========================
+    // CARGAR PRODUCTOS
+    // =========================
+
     const cargarProductos = async () => {
 
         try {
 
+            setLoading(true);
+
             const { data, error } = await supabase
                 .from("productos")
                 .select("*")
-                .order("id_producto", { ascending: true });
+                .order("id_producto", { ascending: false });
 
             if (error) throw error;
 
@@ -93,32 +95,50 @@ const Productos = () => {
         } finally {
 
             setLoading(false);
+
         }
     };
+
+    // =========================
+    // FILTROS
+    // =========================
 
     useEffect(() => {
 
         let filtrados = productos.filter((producto) => {
 
             const coincideBusqueda =
+
                 producto.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+
                 producto.descripcion?.toLowerCase().includes(busqueda.toLowerCase());
 
             const coincideCategoria =
+
                 categoriaFiltro === "Todas" ||
+
                 producto.categoria === categoriaFiltro;
 
             return coincideBusqueda && coincideCategoria;
+
         });
 
         setProductosFiltrados(filtrados);
 
     }, [busqueda, categoriaFiltro, productos]);
 
+    // =========================
+    // PAGINACIÓN
+    // =========================
+
     const productosPaginados = productosFiltrados.slice(
         (paginaActual - 1) * registrosPorPagina,
         paginaActual * registrosPorPagina
     );
+
+    // =========================
+    // MODALES
+    // =========================
 
     const handleNuevoProducto = () => {
         setShowRegistroModal(true);
@@ -133,6 +153,10 @@ const Productos = () => {
         setProductoEliminar(producto);
         setShowDeleteModal(true);
     };
+
+    // =========================
+    // REGISTRAR PRODUCTO
+    // =========================
 
     const handleGuardarNuevo = async (nuevoProducto) => {
 
@@ -198,8 +222,13 @@ const Productos = () => {
         } finally {
 
             setModalLoading(false);
+
         }
     };
+
+    // =========================
+    // EDITAR PRODUCTO
+    // =========================
 
     const handleGuardarEdicion = async (datosEditados) => {
 
@@ -264,8 +293,13 @@ const Productos = () => {
         } finally {
 
             setModalLoading(false);
+
         }
     };
+
+    // =========================
+    // ELIMINAR PRODUCTO
+    // =========================
 
     const handleConfirmarEliminacion = async () => {
 
@@ -303,117 +337,139 @@ const Productos = () => {
         } finally {
 
             setModalLoading(false);
+
         }
     };
 
     return (
 
-        <Container className="margen-superior-main py-5">
+        <Container fluid className="margen-superior-main py-4 px-lg-5">
 
-            <div className="d-flex justify-content-between align-items-center mb-5">
+            {/* HERO */}
 
-                <div>
+            <div
+                className="rounded-4 p-4 p-lg-5 mb-5 text-white shadow-lg"
+                style={{
+                    background:
+                        "linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%)"
+                }}
+            >
 
-                    <h1 className="display-4 fw-bold text-dark mb-2">
-                        Todos los Productos
-                    </h1>
+                <Row className="align-items-center">
 
-                    <p className="lead text-muted">
-                        Gestiona el inventario de tu pulpería
-                    </p>
+                    <Col lg={8}>
 
-                </div>
+                        <h1 className="display-5 fw-bold mb-3">
+                            Gestión de Productos
+                        </h1>
 
-                <Button
-                    variant="success"
-                    size="lg"
-                    className="shadow-sm px-4 d-flex align-items-center gap-2"
-                    onClick={handleNuevoProducto}
-                >
-                    <span style={{ fontSize: "1.4rem" }}>+</span>
-                    Nuevo Producto
-                </Button>
+                        <p
+                            className="lead mb-0"
+                            style={{
+                                opacity: 0.9
+                            }}
+                        >
+                            Administra el inventario de tu pulpería de manera
+                            rápida y profesional.
+                        </p>
+
+                    </Col>
+
+                    <Col
+                        lg={4}
+                        className="text-lg-end text-center mt-4 mt-lg-0"
+                    >
+
+                        <Button
+                            variant="light"
+                            size="lg"
+                            className="fw-bold rounded-4 px-4 shadow-sm"
+                            onClick={handleNuevoProducto}
+                        >
+                            ➕ Nuevo Producto
+                        </Button>
+
+                    </Col>
+
+                </Row>
 
             </div>
 
-            <Row className="mb-5 justify-content-center">
+            {/* FILTROS */}
 
-                <Col lg={11}>
+            <div className="bg-white rounded-4 shadow-sm border p-4 mb-5">
 
-                    <div className="bg-white p-4 rounded-4 shadow border">
+                <Row className="g-3 align-items-center">
 
-                        <Row className="g-3 align-items-end">
+                    <Col lg={7}>
 
-                            <Col md={7}>
+                        <Form.Control
+                            type="text"
+                            placeholder="Buscar producto por nombre o descripción..."
+                            value={busqueda}
+                            onChange={(e) => setBusqueda(e.target.value)}
+                            size="lg"
+                            className="rounded-4 border-0 shadow-sm"
+                        />
 
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Busca por nombre o descripción..."
-                                    value={busqueda}
-                                    onChange={(e) => setBusqueda(e.target.value)}
-                                    size="lg"
-                                    className="shadow-sm"
-                                />
+                    </Col>
 
-                            </Col>
+                    <Col lg={3}>
 
-                            <Col md={3}>
+                        <Form.Select
+                            value={categoriaFiltro}
+                            onChange={(e) =>
+                                setCategoriaFiltro(e.target.value)
+                            }
+                            size="lg"
+                            className="rounded-4 border-0 shadow-sm"
+                        >
 
-                                <Form.Select
-                                    value={categoriaFiltro}
-                                    onChange={(e) =>
-                                        setCategoriaFiltro(e.target.value)
-                                    }
-                                    size="lg"
-                                    className="shadow-sm"
-                                >
-                                    <option value="Todas">
-                                        Todas las categorías
-                                    </option>
+                            <option value="Todas">
+                                Todas las categorías
+                            </option>
 
-                                    <option value="Alimentos">
-                                        Alimentos
-                                    </option>
+                            <option value="Alimentos">
+                                Alimentos
+                            </option>
 
-                                    <option value="Bebidas">
-                                        Bebidas
-                                    </option>
+                            <option value="Bebidas">
+                                Bebidas
+                            </option>
 
-                                    <option value="Despensa">
-                                        Despensa
-                                    </option>
+                            <option value="Despensa">
+                                Despensa
+                            </option>
 
-                                    <option value="Lácteos">
-                                        Lácteos
-                                    </option>
+                            <option value="Lácteos">
+                                Lácteos
+                            </option>
 
-                                    <option value="Limpieza">
-                                        Limpieza
-                                    </option>
+                            <option value="Limpieza">
+                                Limpieza
+                            </option>
 
-                                </Form.Select>
+                        </Form.Select>
 
-                            </Col>
+                    </Col>
 
-                            <Col md={2}>
+                    <Col lg={2}>
 
-                                <Button
-                                    variant="primary"
-                                    size="lg"
-                                    className="w-100 fw-semibold shadow-sm"
-                                >
-                                    Buscar
-                                </Button>
+                        <Button
+                            variant="primary"
+                            size="lg"
+                            className="w-100 rounded-4 fw-semibold shadow-sm"
+                        >
+                            Buscar
+                        </Button>
 
-                            </Col>
+                    </Col>
 
-                        </Row>
+                </Row>
 
-                    </div>
+            </div>
 
-                </Col>
-
-            </Row>
+            {/* TABLA */}
 
             {loading ? (
 
@@ -434,29 +490,63 @@ const Productos = () => {
             ) : (
 
                 <>
-
-                    {/* TABLA SOLO DESKTOP */}
                     <div className="d-none d-md-block">
 
-                        <TablaProductos
-                            productos={productosPaginados}
-                            abrirModalEdicion={handleEditarProducto}
-                            abrirModalEliminacion={handleEliminarProducto}
-                        />
+                        <div className="bg-white rounded-4 shadow-sm border overflow-hidden">
+
+                            <div className="p-4 border-bottom">
+
+                                <h4 className="fw-bold mb-1">
+                                    Inventario de Productos
+                                </h4>
+
+                                <p className="text-muted mb-0">
+                                    Lista completa de productos registrados
+                                </p>
+
+                            </div>
+
+                            <div className="table-responsive">
+
+                                <TablaProductos
+                                    productos={productosPaginados}
+                                    abrirModalEdicion={handleEditarProducto}
+                                    abrirModalEliminacion={handleEliminarProducto}
+                                />
+
+                            </div>
+
+                        </div>
 
                     </div>
 
-                    {/* TARJETAS SOLO MOBILE */}
+                    {/* MOBILE */}
+
                     <div className="d-block d-md-none">
 
                         <TarjetasProductos
                             productos={productosPaginados}
                             categorias={[
-                                { id_categoria: "Bebidas", nombre_categoria: "Bebidas" },
-                                { id_categoria: "Alimentos", nombre_categoria: "Alimentos" },
-                                { id_categoria: "Despensa", nombre_categoria: "Despensa" },
-                                { id_categoria: "Lácteos", nombre_categoria: "Lácteos" },
-                                { id_categoria: "Limpieza", nombre_categoria: "Limpieza" },
+                                {
+                                    id_categoria: "Bebidas",
+                                    nombre_categoria: "Bebidas"
+                                },
+                                {
+                                    id_categoria: "Alimentos",
+                                    nombre_categoria: "Alimentos"
+                                },
+                                {
+                                    id_categoria: "Despensa",
+                                    nombre_categoria: "Despensa"
+                                },
+                                {
+                                    id_categoria: "Lácteos",
+                                    nombre_categoria: "Lácteos"
+                                },
+                                {
+                                    id_categoria: "Limpieza",
+                                    nombre_categoria: "Limpieza"
+                                },
                             ]}
                             abrirModalEdicion={handleEditarProducto}
                             abrirModalEliminacion={handleEliminarProducto}
@@ -464,19 +554,23 @@ const Productos = () => {
 
                     </div>
 
-                    <hr className="my-4" />
+                    <div className="mt-5">
 
-                    <Paginacion
-                        registrosPorPagina={registrosPorPagina}
-                        totalRegistros={productosFiltrados.length}
-                        paginaActual={paginaActual}
-                        establecerPaginaActual={setPaginaActual}
-                        establecerRegistrosPorPagina={setRegistrosPorPagina}
-                    />
+                        <Paginacion
+                            registrosPorPagina={registrosPorPagina}
+                            totalRegistros={productosFiltrados.length}
+                            paginaActual={paginaActual}
+                            establecerPaginaActual={setPaginaActual}
+                            establecerRegistrosPorPagina={setRegistrosPorPagina}
+                        />
+
+                    </div>
 
                 </>
 
             )}
+
+            {/* MODALES */}
 
             <FormularioRegistroProducto
                 show={showRegistroModal}

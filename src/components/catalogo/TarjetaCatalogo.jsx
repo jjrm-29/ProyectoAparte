@@ -1,38 +1,46 @@
 import React, { useState } from "react";
-import { Card, Badge, Modal, Button } from "react-bootstrap";
+import {
+    Card,
+    Badge,
+    Modal,
+    Button
+} from "react-bootstrap";
 
-const TarjetaCatalogo = ({
-    producto,
-    onEditar,
-    onEliminar
-}) => {
+const TarjetaCatalogo = ({ producto }) => {
 
     const [mostrarModal, setMostrarModal] = useState(false);
 
     const descripcion = producto.descripcion || "";
 
     const previsualizacionTexto =
-        descripcion.length > 50
-            ? descripcion.substring(0, 50) + "..."
+        descripcion.length > 70
+            ? descripcion.substring(0, 70) + "..."
             : descripcion;
 
-    const tieneMasTexto = descripcion.length > 50;
+    const tieneMasTexto = descripcion.length > 70;
 
     return (
         <>
+
+            {/* TARJETA */}
+
             <Card
-                className="h-100 border-0 shadow-lg overflow-hidden"
+                className="h-100 border-0 shadow-sm rounded-4 overflow-hidden tarjeta-catalogo"
                 style={{
-                    transition: "transform 0.3s, box-shadow 0.3s",
+                    transition: "all 0.3s ease",
                     cursor: "pointer"
                 }}
                 onClick={() => setMostrarModal(true)}
             >
 
                 {/* IMAGEN */}
+
                 <div
-                    className="ratio ratio-1x1 bg-light"
-                    style={{ overflow: "hidden" }}
+                    className="position-relative bg-light"
+                    style={{
+                        height: "260px",
+                        overflow: "hidden"
+                    }}
                 >
 
                     {producto.imagen ? (
@@ -40,92 +48,85 @@ const TarjetaCatalogo = ({
                         <img
                             src={producto.imagen}
                             alt={producto.nombre}
-                            className="card-img-top object-fit-cover"
                             loading="lazy"
                             style={{
                                 width: "100%",
                                 height: "100%",
-                                objectFit: "cover"
+                                objectFit: "cover",
+                                transition: "transform 0.4s ease"
                             }}
+                            className="imagen-producto"
                         />
 
                     ) : (
 
-                        <div className="d-flex align-items-center justify-content-center h-100 bg-secondary-subtle">
-                            <i className="bi bi-image text-muted fs-1"></i>
+                        <div className="d-flex align-items-center justify-content-center h-100 bg-light">
+
+                            <i className="bi bi-image text-secondary fs-1"></i>
+
                         </div>
 
                     )}
 
-                </div>
+                    {/* BADGE */}
 
-                {/* CONTENIDO */}
-                <Card.Body className="d-flex flex-column p-3">
+                    <div className="position-absolute top-0 start-0 p-3">
 
-                    <Card.Title className="h6 fw-bold text-dark mb-2">
-                        {producto.nombre}
-                    </Card.Title>
-
-                    <Card.Text className="text-muted small flex-grow-1">
-
-                        {previsualizacionTexto}
-
-                        {tieneMasTexto && (
-                            <span className="text-primary ms-1">
-                                Leer más
-                            </span>
-                        )}
-
-                    </Card.Text>
-
-                    <div className="mb-3">
-
-                        <Badge bg="secondary" pill>
+                        <Badge
+                            bg="light"
+                            text="dark"
+                            className="rounded-pill px-3 py-2 shadow-sm fw-semibold"
+                        >
                             {producto.categoria || "Sin categoría"}
                         </Badge>
 
                     </div>
 
-                    <hr />
+                </div>
 
-                    <div className="mt-auto pt-2">
+                {/* CONTENIDO */}
 
-                        <h4 className="text-success fw-bold mb-1">
-                            C${parseFloat(producto.precio || 0).toFixed(2)}
+                <Card.Body className="d-flex flex-column p-4">
+
+                    <Card.Title className="fw-bold text-dark mb-2">
+
+                        {producto.nombre}
+
+                    </Card.Title>
+
+                    <Card.Text
+                        className="text-muted small flex-grow-1"
+                        style={{
+                            minHeight: "55px",
+                            lineHeight: "1.6"
+                        }}
+                    >
+
+                        {previsualizacionTexto}
+
+                        {tieneMasTexto && (
+
+                            <span className="text-primary fw-semibold ms-1">
+                                Ver más
+                            </span>
+
+                        )}
+
+                    </Card.Text>
+
+                    <div className="mt-3">
+
+                        <h4 className="fw-bold text-success mb-1">
+
+                            C$ {parseFloat(producto.precio || 0).toFixed(2)}
+
                         </h4>
 
                         <small className="text-muted">
-                            Stock: {producto.stock}
+
+                            Stock disponible: {producto.stock}
+
                         </small>
-
-                        {/* BOTONES */}
-                        <div className="d-flex gap-2 mt-3">
-
-                            <Button
-                                variant="warning"
-                                size="sm"
-                                className="w-50"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onEditar(producto);
-                                }}
-                            >
-                                Editar
-                            </Button>
-
-                            <Button
-                                variant="danger"
-                                size="sm"
-                                className="w-50"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onEliminar(producto);
-                                }}
-                            >
-                                Eliminar
-                            </Button>
-
-                        </div>
 
                     </div>
 
@@ -134,6 +135,7 @@ const TarjetaCatalogo = ({
             </Card>
 
             {/* MODAL */}
+
             <Modal
                 show={mostrarModal}
                 onHide={() => setMostrarModal(false)}
@@ -141,15 +143,19 @@ const TarjetaCatalogo = ({
                 size="lg"
             >
 
-                <Modal.Header closeButton>
-                    <Modal.Title>
+                <Modal.Header closeButton className="border-0 pb-0">
+
+                    <Modal.Title className="fw-bold">
                         {producto.nombre}
                     </Modal.Title>
+
                 </Modal.Header>
 
-                <Modal.Body>
+                <Modal.Body className="p-4">
 
-                    <div className="row g-4">
+                    <div className="row g-4 align-items-center">
+
+                        {/* IMAGEN */}
 
                         <div className="col-md-5">
 
@@ -158,40 +164,83 @@ const TarjetaCatalogo = ({
                                 <img
                                     src={producto.imagen}
                                     alt={producto.nombre}
-                                    className="img-fluid rounded"
+                                    className="img-fluid rounded-4 shadow-sm"
                                     style={{
                                         width: "100%",
+                                        maxHeight: "350px",
                                         objectFit: "cover"
                                     }}
                                 />
 
                             ) : (
 
-                                <div className="bg-light rounded d-flex align-items-center justify-content-center p-5">
-                                    <i className="bi bi-image fs-1 text-muted"></i>
+                                <div
+                                    className="bg-light rounded-4 d-flex align-items-center justify-content-center"
+                                    style={{
+                                        height: "300px"
+                                    }}
+                                >
+
+                                    <i className="bi bi-image text-secondary fs-1"></i>
+
                                 </div>
 
                             )}
 
                         </div>
 
+                        {/* INFORMACIÓN */}
+
                         <div className="col-md-7">
 
-                            <Badge bg="secondary" className="mb-3">
+                            <Badge
+                                bg="primary"
+                                className="mb-3 px-3 py-2 rounded-pill"
+                            >
                                 {producto.categoria}
                             </Badge>
 
-                            <h3 className="text-success fw-bold">
-                                C${parseFloat(producto.precio || 0).toFixed(2)}
-                            </h3>
+                            <h2 className="fw-bold text-success mb-3">
 
-                            <p className="mt-3">
+                                C$ {parseFloat(producto.precio || 0).toFixed(2)}
+
+                            </h2>
+
+                            <p
+                                className="text-muted"
+                                style={{
+                                    lineHeight: "1.8"
+                                }}
+                            >
                                 {producto.descripcion}
                             </p>
 
-                            <p>
-                                <strong>Stock:</strong> {producto.stock}
-                            </p>
+                            <div
+                                className="bg-light rounded-4 p-3 mt-4"
+                            >
+
+                                <div className="d-flex justify-content-between align-items-center">
+
+                                    <span className="fw-semibold">
+                                        Disponibilidad
+                                    </span>
+
+                                    <Badge
+                                        bg={
+                                            producto.stock > 0
+                                                ? "success"
+                                                : "danger"
+                                        }
+                                        className="px-3 py-2 rounded-pill"
+                                    >
+                                        {producto.stock > 0
+                                            ? `${producto.stock} en stock`
+                                            : "Agotado"}
+                                    </Badge>
+
+                                </div>
+
+                            </div>
 
                         </div>
 
@@ -199,10 +248,11 @@ const TarjetaCatalogo = ({
 
                 </Modal.Body>
 
-                <Modal.Footer>
+                <Modal.Footer className="border-0 pt-0">
 
                     <Button
-                        variant="secondary"
+                        variant="dark"
+                        className="rounded-4 px-4"
                         onClick={() => setMostrarModal(false)}
                     >
                         Cerrar
@@ -211,6 +261,7 @@ const TarjetaCatalogo = ({
                 </Modal.Footer>
 
             </Modal>
+
         </>
     );
 };

@@ -7,7 +7,9 @@ import {
     Row,
     Col,
     Image,
-    Alert
+    Alert,
+    Card,
+    Badge
 } from "react-bootstrap";
 
 import { supabase } from "../../database/supabaseconfig";
@@ -20,15 +22,16 @@ const ModalRegistroVenta = ({
 
     const [productos, setProductos] = useState([]);
     const [loading, setLoading] = useState(false);
-
     const [formError, setFormError] = useState("");
 
-    const [form, setForm] = useState({
-        id_producto: "",
-        cantidad: 1,
-        precio: 0,
-        total: 0
-    });
+    const [items, setItems] = useState([
+        {
+            id_producto: "",
+            cantidad: 1,
+            precio: 0,
+            total: 0
+        }
+    ]);
 
     useEffect(() => {
 
@@ -37,10 +40,6 @@ const ModalRegistroVenta = ({
         }
 
     }, [show]);
-
-    // =========================
-    // CARGAR PRODUCTOS
-    // =========================
 
     const cargarProductos = async () => {
 
@@ -57,58 +56,71 @@ const ModalRegistroVenta = ({
 
         } catch (error) {
 
-            console.error("Error al cargar productos:", error);
+            console.error(error);
         }
     };
 
-    // =========================
-    // PRODUCTO SELECCIONADO
-    // =========================
+    const handleProducto = (index, e) => {
 
-    const productoSeleccionado = productos.find(
-        (p) => p.id_producto === parseInt(form.id_producto)
-    );
-
-    // =========================
-    // CAMBIAR PRODUCTO
-    // =========================
-
-    const handleProducto = (e) => {
-
-        const id = parseInt(e.target.value);
+        const id = e.target.value;
 
         const producto = productos.find(
-            (p) => p.id_producto === id
+            (p) => String(p.id_producto) === String(id)
         );
 
         const precio = parseFloat(producto?.precio || 0);
 
-        setForm((prev) => ({
-            ...prev,
+        const nuevosItems = [...items];
+
+        nuevosItems[index] = {
+            ...nuevosItems[index],
             id_producto: id,
             precio,
-            total: precio * prev.cantidad
-        }));
+            total: precio * nuevosItems[index].cantidad
+        };
+
+        setItems(nuevosItems);
     };
 
-    // =========================
-    // CAMBIAR CANTIDAD
-    // =========================
-
-    const handleCantidad = (e) => {
+    const handleCantidad = (index, e) => {
 
         const cantidad = parseInt(e.target.value) || 1;
 
-        setForm((prev) => ({
-            ...prev,
+        const nuevosItems = [...items];
+
+        nuevosItems[index] = {
+            ...nuevosItems[index],
             cantidad,
-            total: cantidad * prev.precio
-        }));
+            total: cantidad * nuevosItems[index].precio
+        };
+
+        setItems(nuevosItems);
     };
 
-    // =========================
-    // GUARDAR
-    // =========================
+    const agregarProducto = () => {
+
+        setItems([
+            ...items,
+            {
+                id_producto: "",
+                cantidad: 1,
+                precio: 0,
+                total: 0
+            }
+        ]);
+    };
+
+    const eliminarProducto = (index) => {
+
+        const nuevosItems = items.filter((_, i) => i !== index);
+
+        setItems(nuevosItems);
+    };
+
+    const totalGeneral = items.reduce(
+        (acc, item) => acc + item.total,
+        0
+    );
 
     const guardar = async () => {
 
@@ -116,13 +128,13 @@ const ModalRegistroVenta = ({
 
             setFormError("");
 
-            if (!form.id_producto) {
-                setFormError("Debes seleccionar un producto");
-                return;
-            }
+            const itemsValidos = items.filter(
+                (item) => item.id_producto
+            );
 
-            if (form.cantidad <= 0) {
-                setFormError("La cantidad debe ser mayor a 0");
+            if (itemsValidos.length === 0) {
+
+                setFormError("Debes seleccionar al menos un producto");
                 return;
             }
 
@@ -132,23 +144,15 @@ const ModalRegistroVenta = ({
                 .toISOString()
                 .split("T")[0];
 
-            // =========================
-            // BUSCAR FECHA
-            // =========================
-
             let { data: tiempoExistente } = await supabase
                 .from("Dim_Tiempo")
                 .select("*")
                 .eq("fecha", fechaHoy)
                 .single();
 
-            // =========================
-            // CREAR FECHA SI NO EXISTE
-            // =========================
-
             if (!tiempoExistente) {
 
-                const { data: nuevoTiempo, error: errorTiempo } = await supabase
+                const { data: nuevoTiempo } = await supabase
                     .from("Dim_Tiempo")
                     .insert([
                         {
@@ -162,61 +166,54 @@ const ModalRegistroVenta = ({
                     .select()
                     .single();
 
-                if (errorTiempo) throw errorTiempo;
-
                 tiempoExistente = nuevoTiempo;
             }
 
-            // =========================
-            // INSERTAR VENTA
-            // =========================
+            for (const item of itemsValidos) {
 
-            const { error: errorVenta } = await supabase
-                .from("Hecho_Ventas")
-                .insert([
-                    {
-                        id_producto: form.id_producto,
-                        id_tiempo: tiempoExistente.id_tiempo,
-                        cantidad: form.cantidad,
-                        total: form.total
-                    }
-                ]);
+                await supabase
+                    .from("Hecho_Ventas")
+                    .insert([
+                        {
+                            id_producto: item.id_producto,
+                            id_tiempo: tiempoExistente.id_tiempo,
+                            cantidad: item.cantidad,
+                            total: item.total
+                        }
+                    ]);
 
-            if (errorVenta) throw errorVenta;
+                const producto = productos.find(
+                    (p) => String(p.id_producto) === String(item.id_producto)
+                );
 
-            // =========================
-            // ACTUALIZAR STOCK
-            // =========================
+                const nuevoStock =
+                    (producto.stock || 0) - item.cantidad;
 
-            const nuevoStock =
-                (productoSeleccionado.stock || 0) - form.cantidad;
+                await supabase
+                    .from("productos")
+                    .update({
+                        stock: nuevoStock
+                    })
+                    .eq("id_producto", item.id_producto);
+            }
 
-            await supabase
-                .from("productos")
-                .update({
-                    stock: nuevoStock
-                })
-                .eq("id_producto", form.id_producto);
-
-            // =========================
-            // RESET
-            // =========================
-
-            setForm({
-                id_producto: "",
-                cantidad: 1,
-                precio: 0,
-                total: 0
-            });
+            setItems([
+                {
+                    id_producto: "",
+                    cantidad: 1,
+                    precio: 0,
+                    total: 0
+                }
+            ]);
 
             onHide();
             onSuccess();
 
         } catch (error) {
 
-            console.error("Error al guardar venta:", error);
+            console.error(error);
 
-            setFormError("Ocurrió un error al registrar la venta");
+            setFormError("Error al registrar venta");
 
         } finally {
 
@@ -230,200 +227,307 @@ const ModalRegistroVenta = ({
             show={show}
             onHide={onHide}
             centered
-            size="lg"
+            size="xl"
         >
 
-            <Modal.Header closeButton>
+            <Modal.Header closeButton className="border-0 pb-0">
 
-                <Modal.Title>
-                    🧾 Registrar Venta
+                <Modal.Title className="fw-bold fs-3">
+                    🧾 Nueva Venta
                 </Modal.Title>
 
             </Modal.Header>
 
-            <Modal.Body>
+            <Modal.Body className="pt-2">
 
                 {formError && (
 
-                    <Alert variant="danger">
+                    <Alert variant="danger" className="rounded-4">
                         {formError}
                     </Alert>
 
                 )}
 
-                <Row className="g-4">
+                <Row>
 
-                    {/* IMAGEN */}
+                    {/* PRODUCTOS */}
 
-                    <Col md={5} className="text-center">
+                    <Col lg={8}>
+
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+
+                            <h5 className="fw-bold mb-0">
+                                Productos Agregados
+                            </h5>
+
+                            <Button
+                                variant="dark"
+                                className="rounded-4 px-4"
+                                onClick={agregarProducto}
+                            >
+                                + Agregar Producto
+                            </Button>
+
+                        </div>
 
                         <div
-                            className="border rounded-4 overflow-hidden bg-light mx-auto"
                             style={{
-                                width: "220px",
-                                height: "220px"
+                                maxHeight: "500px",
+                                overflowY: "auto"
                             }}
                         >
 
-                            {productoSeleccionado?.imagen ? (
+                            {items.map((item, index) => {
 
-                                <Image
-                                    src={productoSeleccionado.imagen}
-                                    fluid
-                                    style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        objectFit: "cover"
-                                    }}
-                                />
+                                const producto = productos.find(
+                                    (p) =>
+                                        String(p.id_producto) ===
+                                        String(item.id_producto)
+                                );
 
-                            ) : (
+                                return (
 
-                                <div className="d-flex align-items-center justify-content-center h-100">
-                                    <span style={{ fontSize: "5rem" }}>
-                                        📦
-                                    </span>
-                                </div>
+                                    <Card
+                                        key={index}
+                                        className="border-0 shadow-sm rounded-4 mb-3"
+                                    >
 
-                            )}
+                                        <Card.Body>
+
+                                            <Row className="align-items-center">
+
+                                                {/* IMAGEN */}
+
+                                                <Col md={3} className="text-center">
+
+                                                    <div
+                                                        className="bg-light rounded-4 overflow-hidden mx-auto"
+                                                        style={{
+                                                            width: "110px",
+                                                            height: "110px"
+                                                        }}
+                                                    >
+
+                                                        {producto?.imagen ? (
+
+                                                            <Image
+                                                                src={producto.imagen}
+                                                                fluid
+                                                                style={{
+                                                                    width: "100%",
+                                                                    height: "100%",
+                                                                    objectFit: "cover"
+                                                                }}
+                                                            />
+
+                                                        ) : (
+
+                                                            <div className="d-flex justify-content-center align-items-center h-100">
+                                                                <span style={{ fontSize: "3rem" }}>
+                                                                    📦
+                                                                </span>
+                                                            </div>
+
+                                                        )}
+
+                                                    </div>
+
+                                                </Col>
+
+                                                {/* FORM */}
+
+                                                <Col md={9}>
+
+                                                    <Row>
+
+                                                        <Col md={6} className="mb-3">
+
+                                                            <Form.Label className="fw-semibold">
+                                                                Producto
+                                                            </Form.Label>
+
+                                                            <Form.Select
+                                                                value={item.id_producto}
+                                                                onChange={(e) =>
+                                                                    handleProducto(index, e)
+                                                                }
+                                                                className="rounded-4"
+                                                            >
+
+                                                                <option value="">
+                                                                    Selecciona producto
+                                                                </option>
+
+                                                                {productos.map((p) => (
+
+                                                                    <option
+                                                                        key={p.id_producto}
+                                                                        value={p.id_producto}
+                                                                    >
+                                                                        {p.nombre}
+                                                                    </option>
+
+                                                                ))}
+
+                                                            </Form.Select>
+
+                                                        </Col>
+
+                                                        <Col md={3} className="mb-3">
+
+                                                            <Form.Label className="fw-semibold">
+                                                                Cantidad
+                                                            </Form.Label>
+
+                                                            <Form.Control
+                                                                type="number"
+                                                                min="1"
+                                                                value={item.cantidad}
+                                                                onChange={(e) =>
+                                                                    handleCantidad(index, e)
+                                                                }
+                                                                className="rounded-4"
+                                                            />
+
+                                                        </Col>
+
+                                                        <Col md={3} className="mb-3">
+
+                                                            <Form.Label className="fw-semibold">
+                                                                Subtotal
+                                                            </Form.Label>
+
+                                                            <Form.Control
+                                                                value={`C$ ${item.total.toFixed(2)}`}
+                                                                disabled
+                                                                className="rounded-4 fw-bold text-success"
+                                                            />
+
+                                                        </Col>
+
+                                                    </Row>
+
+                                                    <div className="d-flex justify-content-between align-items-center mt-2">
+
+                                                        <div className="d-flex gap-2">
+
+                                                            <Badge bg="dark" className="px-3 py-2 rounded-pill">
+                                                                Precio: C$ {item.precio.toFixed(2)}
+                                                            </Badge>
+
+                                                            {producto?.stock >= 1 && (
+
+                                                                <Badge bg="success" className="px-3 py-2 rounded-pill">
+                                                                    Stock: {producto.stock}
+                                                                </Badge>
+
+                                                            )}
+
+                                                        </div>
+
+                                                        {items.length > 1 && (
+
+                                                            <Button
+                                                                variant="outline-danger"
+                                                                size="sm"
+                                                                className="rounded-pill"
+                                                                onClick={() =>
+                                                                    eliminarProducto(index)
+                                                                }
+                                                            >
+                                                                Eliminar
+                                                            </Button>
+
+                                                        )}
+
+                                                    </div>
+
+                                                </Col>
+
+                                            </Row>
+
+                                        </Card.Body>
+
+                                    </Card>
+
+                                );
+                            })}
 
                         </div>
 
                     </Col>
 
-                    {/* FORMULARIO */}
+                    {/* RESUMEN */}
 
-                    <Col md={7}>
+                    <Col lg={4}>
 
-                        <Form>
+                        <Card className="border-0 shadow rounded-4 sticky-top">
 
-                            {/* PRODUCTO */}
+                            <Card.Body className="p-4">
 
-                            <Form.Group className="mb-4">
+                                <h4 className="fw-bold mb-4">
+                                    Resumen
+                                </h4>
 
-                                <Form.Label className="fw-semibold">
-                                    Producto
-                                </Form.Label>
+                                <div className="d-flex justify-content-between mb-3">
 
-                                <Form.Select
-                                    value={form.id_producto}
-                                    onChange={handleProducto}
-                                    size="lg"
+                                    <span className="text-muted">
+                                        Productos
+                                    </span>
+
+                                    <span className="fw-semibold">
+                                        {items.length}
+                                    </span>
+
+                                </div>
+
+                                <div className="d-flex justify-content-between mb-4">
+
+                                    <span className="text-muted">
+                                        Total General
+                                    </span>
+
+                                    <span className="fw-bold fs-4 text-success">
+                                        C$ {totalGeneral.toFixed(2)}
+                                    </span>
+
+                                </div>
+
+                                <Button
+                                    variant="success"
+                                    className="w-100 rounded-4 py-3 fw-bold"
+                                    onClick={guardar}
+                                    disabled={loading}
                                 >
 
-                                    <option value="">
-                                        Selecciona un producto
-                                    </option>
+                                    {loading ? (
 
-                                    {productos.map((p) => (
+                                        <>
+                                            <Spinner
+                                                animation="border"
+                                                size="sm"
+                                                className="me-2"
+                                            />
+                                            Guardando...
+                                        </>
 
-                                        <option
-                                            key={p.id_producto}
-                                            value={p.id_producto}
-                                        >
-                                            {p.nombre} - C$ {p.precio}
-                                        </option>
+                                    ) : (
 
-                                    ))}
+                                        "Guardar Venta"
 
-                                </Form.Select>
+                                    )}
 
-                            </Form.Group>
+                                </Button>
 
-                            {/* CANTIDAD */}
+                            </Card.Body>
 
-                            <Form.Group className="mb-4">
-
-                                <Form.Label className="fw-semibold">
-                                    Cantidad
-                                </Form.Label>
-
-                                <Form.Control
-                                    type="number"
-                                    min="1"
-                                    value={form.cantidad}
-                                    onChange={handleCantidad}
-                                    size="lg"
-                                />
-
-                            </Form.Group>
-
-                            {/* PRECIO */}
-
-                            <Form.Group className="mb-4">
-
-                                <Form.Label className="fw-semibold">
-                                    Precio Unitario
-                                </Form.Label>
-
-                                <Form.Control
-                                    value={`C$ ${parseFloat(form.precio || 0).toFixed(2)}`}
-                                    disabled
-                                    size="lg"
-                                />
-
-                            </Form.Group>
-
-                            {/* TOTAL */}
-
-                            <Form.Group>
-
-                                <Form.Label className="fw-semibold">
-                                    Total
-                                </Form.Label>
-
-                                <Form.Control
-                                    value={`C$ ${parseFloat(form.total || 0).toFixed(2)}`}
-                                    disabled
-                                    size="lg"
-                                    className="fw-bold text-success"
-                                />
-
-                            </Form.Group>
-
-                        </Form>
+                        </Card>
 
                     </Col>
 
                 </Row>
 
             </Modal.Body>
-
-            <Modal.Footer>
-
-                <Button
-                    variant="secondary"
-                    onClick={onHide}
-                >
-                    Cancelar
-                </Button>
-
-                <Button
-                    variant="success"
-                    onClick={guardar}
-                    disabled={loading}
-                >
-
-                    {loading ? (
-
-                        <>
-                            <Spinner
-                                animation="border"
-                                size="sm"
-                                className="me-2"
-                            />
-                            Guardando...
-                        </>
-
-                    ) : (
-
-                        "Guardar Venta"
-
-                    )}
-
-                </Button>
-
-            </Modal.Footer>
 
         </Modal>
     );

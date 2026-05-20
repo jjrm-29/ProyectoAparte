@@ -1,197 +1,509 @@
-import React, { useState } from "react";
-import { Container, Row, Col, Button } from "react-bootstrap";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import {
+  Container,
+  Row,
+  Col,
+  Button,
+  Spinner,
+  Alert,
+  Card
+} from "react-bootstrap";
 
-import TarjetaCategoria from "../../src/components/categorias/TarjetaCategoria";
-import ModalRegistroCategoria from "../../src/components/categorias/ModalRegistroCategoria";
-import ModalEdicionCategoria from "../../src/components/categorias/ModalEdicionCategoria";
-import ModalEliminacionCategoria from "../../src/components/categorias/ModalEliminacionCategoria";
+import { supabase } from "../database/supabaseconfig";
+
+import ModalRegistroCategoria from "../components/categorias/ModalRegistroCategoria";
+import ModalEdicionCategoria from "../components/categorias/ModalEdicionCategoria";
+import ModalEliminacionCategoria from "../components/categorias/ModalEliminacionCategoria";
+
+import NotificacionOperacion from "../components/NotificacionOperacion";
+
+import TablaCategorias from "../components/categorias/TablaCategoria";
+import TarjetaCategoria from "../components/categorias/TarjetaCategoria";
+
+import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
+import Paginacion from "../components/ordenamiento/Paginacion";
+
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const Categorias = () => {
-    const navigate = useNavigate();
 
-    const [categorias, setCategorias] = useState([
-        {
-            id: 1,
-            nombre: "Bebidas",
-            descripcion: "Refrescos y gaseosas",
-            imagen: "https://tse3.mm.bing.net/th/id/OIP.4ICLLZXctA3uDUaFpFT5xwHaDw?rs=1&pid=ImgDetMain&o=7&rm=3",
-            color: "#6c5ce7",
-            count: "8 productos"
-        },
-        {
-            id: 2,
-            nombre: "Alimentos",
-            descripcion: "Arroz, frijoles, galletas y básicos",
-            imagen: "https://guerirlagoutte.com/wp-content/uploads/2023/03/different-vegetables-seeds-fruits-table-flat-lay-top-view_600x600.jpg?v=1675933695",
-            color: "#8B6F47",
-            count: "15 productos"
-        },
-        {
-            id: 3,
-            nombre: "Despensa",
-            descripcion: "Aceite, pasta y conservas",
-            imagen: "https://tse2.mm.bing.net/th/id/OIP.JQObc1ZdS0cN3qmQpAbmjwHaEJ?rs=1&pid=ImgDetMain&o=7&rm=3",
-            color: "#2697cc",
-            count: "12 productos"
-        },
-        {
-            id: 4,
-            nombre: "Lácteos",
-            descripcion: "Leche en polvo y derivados",
-            imagen: "https://th.bing.com/th?id=OIF.GZUGLA64BNE7%2bqZ%2fNlTQkg&rs=1&pid=ImgDetMain&o=7&rm=3",
-            color: "#c44569",
-            count: "6 productos"
-        },
-        {
-            id: 5,
-            nombre: "Limpieza",
-            descripcion: "Detergentes, jabones y productos de limpieza",
-            imagen: "https://3.bp.blogspot.com/-T0CFVvujgPc/VxVRwaY0uWI/AAAAAAAAAIg/XN3Vpt5tAsczpS9N1b5SFdpqJ6eZQ4JFQCLcB/s1600/utensilios.jpg",
-            color: "#121b96",
-            count: "9 productos"
-        }
-    ]);
+  const [toast, setToast] = useState({
+    mostrar: false,
+    mensaje: "",
+    tipo: "",
+  });
 
-    // Estados para modales
-    const [showRegistroModal, setShowRegistroModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [categorias, setCategorias] = useState([]);
+  const [categoriasFiltradas, setCategoriasFiltradas] = useState([]);
 
-    const [categoriaEditar, setCategoriaEditar] = useState(null);
-    const [categoriaEliminar, setCategoriaEliminar] = useState(null);
-    const [loading, setLoading] = useState(false);
+  const [cargando, setCargando] = useState(true);
 
-    // ==================== FUNCIONES ====================
+  const [mostrarModal, setMostrarModal] = useState(false);
+  const [mostrarModalEdicion, setMostrarModalEdicion] = useState(false);
+  const [mostrarModalEliminacion, setMostrarModalEliminacion] = useState(false);
 
-    const handleVerProductos = (categoriaNombre) => {
-        navigate(`/catalogo?categoria=${categoriaNombre}`);
-    };
+  const [textoBusqueda, setTextoBusqueda] = useState("");
 
-    const handleNuevaCategoria = () => {
-        setShowRegistroModal(true);
-    };
+  const [registrosPorPagina, establecerRegistrosPorPagina] = useState(5);
+  const [paginaActual, establecerPaginaActual] = useState(1);
 
-    const handleEditar = (categoria) => {
-        setCategoriaEditar(categoria);
-        setShowEditModal(true);
-    };
+  const [categoriaAEliminar, setCategoriaAEliminar] = useState(null);
 
-    const handleEliminar = (categoria) => {
-        setCategoriaEliminar(categoria);
-        setShowDeleteModal(true);
-    };
+  const [categoriaEditar, setCategoriaEditar] = useState({
+    id: "",
+    nombre: "",
+    descripcion: "",
+  });
 
-    const handleGuardarNueva = (datos) => {
-        setLoading(true);
-        setTimeout(() => {
-            const nuevaCategoria = {
-                id: Date.now(),
-                nombre: datos.nombre,
-                descripcion: datos.descripcion,
-                color: datos.color || "#8B6F47",
-                imagen: datos.imagen || `https://via.placeholder.com/600x400/8B6F47/ffffff?text=${encodeURIComponent(datos.nombre)}`,
-                count: "0 productos"
-            };
+  const [nuevaCategoria, setNuevaCategoria] = useState({
+    nombre: "",
+    descripcion: "",
+  });
 
-            setCategorias(prev => [...prev, nuevaCategoria]);
-            alert("✅ Nueva categoría creada correctamente");
-            setShowRegistroModal(false);
-            setLoading(false);
-        }, 700);
-    };
+  // ============================
+  // PDF
+  // ============================
 
-    const handleGuardarEdicion = (datos) => {
-        setLoading(true);
-        setTimeout(() => {
-            setCategorias(prev =>
-                prev.map(cat =>
-                    cat.id === categoriaEditar.id
-                        ? {
-                            ...cat,
-                            nombre: datos.nombre,
-                            descripcion: datos.descripcion,
-                            color: datos.color,
-                            imagen: datos.imagen || cat.imagen
-                        }
-                        : cat
-                )
-            );
-            alert("✅ Categoría actualizada correctamente");
-            setShowEditModal(false);
-            setCategoriaEditar(null);
-            setLoading(false);
-        }, 700);
-    };
+  const generarPDFCategoria = (categoria) => {
 
-    const handleConfirmarEliminacion = () => {
-        setLoading(true);
-        setTimeout(() => {
-            setCategorias(prev => prev.filter(cat => cat.id !== categoriaEliminar.id));
-            alert("✅ Categoría eliminada correctamente");
-            setShowDeleteModal(false);
-            setCategoriaEliminar(null);
-            setLoading(false);
-        }, 600);
-    };
+    const doc = new jsPDF();
 
-    return (
-        <Container className="margen-superior-main py-5">
-            <div className="d-flex justify-content-between align-items-center mb-5">
-                <div>
-                    <h1 className="display-5 fw-bold mb-2">Categorías</h1>
-                    <p className="lead text-muted mb-0">Gestiona las categorías de productos</p>
-                </div>
-                <Button variant="primary" size="lg" onClick={handleNuevaCategoria}>
-                    + Nueva Categoría
-                </Button>
+    doc.setFontSize(18);
+    doc.text("Reporte de Categoría", 14, 20);
+
+    doc.line(14, 25, 195, 25);
+
+    autoTable(doc, {
+      startY: 35,
+      head: [["Campo", "Valor"]],
+      body: [
+        ["ID", categoria.id],
+        ["Nombre", categoria.nombre],
+        ["Descripción", categoria.descripcion],
+      ],
+    });
+
+    doc.save(`categoria_${categoria.id}.pdf`);
+  };
+
+  // ============================
+  // CARGAR CATEGORIAS
+  // ============================
+
+  const cargarCategorias = async () => {
+
+    try {
+
+      setCargando(true);
+
+      const { data, error } = await supabase
+        .from("Categorias")
+        .select("*")
+        .order("id", { ascending: true });
+
+      if (error) throw error;
+
+      setCategorias(data || []);
+      setCategoriasFiltradas(data || []);
+
+    } catch (err) {
+
+      console.error(err);
+
+      setToast({
+        mostrar: true,
+        mensaje: "Error al cargar categorías",
+        tipo: "error",
+      });
+
+    } finally {
+
+      setCargando(false);
+    }
+  };
+
+  useEffect(() => {
+    cargarCategorias();
+  }, []);
+
+  // ============================
+  // BUSQUEDA
+  // ============================
+
+  const manejarBusqueda = (e) => {
+    setTextoBusqueda(e.target.value);
+  };
+
+  useEffect(() => {
+
+    if (!textoBusqueda.trim()) {
+
+      setCategoriasFiltradas(categorias);
+
+    } else {
+
+      const textoLower = textoBusqueda.toLowerCase();
+
+      const filtradas = categorias.filter((cat) =>
+        cat.nombre.toLowerCase().includes(textoLower) ||
+        cat.descripcion?.toLowerCase().includes(textoLower)
+      );
+
+      setCategoriasFiltradas(filtradas);
+    }
+
+  }, [textoBusqueda, categorias]);
+
+  // ============================
+  // PAGINACION
+  // ============================
+
+  const categoriasPaginadas = categoriasFiltradas.slice(
+    (paginaActual - 1) * registrosPorPagina,
+    paginaActual * registrosPorPagina
+  );
+
+  // ============================
+  // MODALES
+  // ============================
+
+  const abrirModalEdicion = (categoria) => {
+
+    setCategoriaEditar({
+      id: categoria.id,
+      nombre: categoria.nombre,
+      descripcion: categoria.descripcion,
+    });
+
+    setMostrarModalEdicion(true);
+  };
+
+  const abrirModalEliminacion = (categoria) => {
+
+    setCategoriaAEliminar(categoria);
+
+    setMostrarModalEliminacion(true);
+  };
+
+  // ============================
+  // INPUTS
+  // ============================
+
+  const manejoCambioInput = (e) => {
+
+    const { name, value } = e.target;
+
+    setNuevaCategoria((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const manejoCambioInputEdicion = (e) => {
+
+    const { name, value } = e.target;
+
+    setCategoriaEditar((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  // ============================
+  // AGREGAR
+  // ============================
+
+  const agregarCategoria = async () => {
+
+    try {
+
+      if (
+        !nuevaCategoria.nombre.trim() ||
+        !nuevaCategoria.descripcion.trim()
+      ) {
+
+        setToast({
+          mostrar: true,
+          mensaje: "Debe llenar todos los campos",
+          tipo: "advertencia",
+        });
+
+        return;
+      }
+
+      const { error } = await supabase
+        .from("Categorias")
+        .insert([
+          {
+            nombre: nuevaCategoria.nombre,
+            descripcion: nuevaCategoria.descripcion,
+          },
+        ]);
+
+      if (error) throw error;
+
+      await cargarCategorias();
+
+      setToast({
+        mostrar: true,
+        mensaje: "Categoría registrada correctamente",
+        tipo: "exito",
+      });
+
+      setNuevaCategoria({
+        nombre: "",
+        descripcion: "",
+      });
+
+      setMostrarModal(false);
+
+    } catch (err) {
+
+      console.error(err);
+
+      setToast({
+        mostrar: true,
+        mensaje: "Error al registrar categoría",
+        tipo: "error",
+      });
+    }
+  };
+
+  // ============================
+  // ELIMINAR
+  // ============================
+
+  const eliminarCategoria = async () => {
+
+    if (!categoriaAEliminar) return;
+
+    try {
+
+      const { error } = await supabase
+        .from("Categorias")
+        .delete()
+        .eq("id", categoriaAEliminar.id);
+
+      if (error) throw error;
+
+      await cargarCategorias();
+
+      setToast({
+        mostrar: true,
+        mensaje: "Categoría eliminada correctamente",
+        tipo: "exito",
+      });
+
+      setMostrarModalEliminacion(false);
+
+    } catch (err) {
+
+      console.error(err);
+
+      setToast({
+        mostrar: true,
+        mensaje: "Error al eliminar categoría",
+        tipo: "error",
+      });
+    }
+  };
+
+  // ============================
+  // ACTUALIZAR
+  // ============================
+
+  const actualizarCategoria = async () => {
+
+    try {
+
+      const { error } = await supabase
+        .from("Categorias")
+        .update({
+          nombre: categoriaEditar.nombre,
+          descripcion: categoriaEditar.descripcion,
+        })
+        .eq("id", categoriaEditar.id);
+
+      if (error) throw error;
+
+      await cargarCategorias();
+
+      setToast({
+        mostrar: true,
+        mensaje: "Categoría actualizada correctamente",
+        tipo: "exito",
+      });
+
+      setMostrarModalEdicion(false);
+
+    } catch (err) {
+
+      console.error(err);
+
+      setToast({
+        mostrar: true,
+        mensaje: "Error al actualizar categoría",
+        tipo: "error",
+      });
+    }
+  };
+
+  return (
+
+    <Container className="margen-superior-main py-5">
+
+      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+
+        <div>
+
+          <h1 className="fw-bold mb-1">
+            Gestión de Categorías
+          </h1>
+
+          <p className="text-muted mb-0">
+            Administra todas las categorías registradas
+          </p>
+
+        </div>
+
+        <Button
+          variant="primary"
+          size="lg"
+          className="rounded-3 shadow-sm"
+          onClick={() => setMostrarModal(true)}
+        >
+          + Nueva Categoría
+        </Button>
+
+      </div>
+
+      <Card className="border-0 shadow-sm rounded-4 mb-4">
+
+        <Card.Body>
+
+          <Row>
+
+            <Col md={6}>
+
+              <CuadroBusquedas
+                textoBusqueda={textoBusqueda}
+                manejarCambioBusqueda={manejarBusqueda}
+                placeholder="Buscar categoría..."
+              />
+
+            </Col>
+
+          </Row>
+
+        </Card.Body>
+
+      </Card>
+
+      {cargando ? (
+
+        <div className="text-center py-5">
+
+          <Spinner animation="border" variant="primary" />
+
+          <p className="mt-3 text-muted">
+            Cargando categorías...
+          </p>
+
+        </div>
+
+      ) : (
+
+        <>
+
+          {textoBusqueda.trim() &&
+            categoriasFiltradas.length === 0 && (
+
+              <Alert variant="info" className="text-center rounded-4">
+
+                No se encontraron categorías para:
+                <strong> {textoBusqueda}</strong>
+
+              </Alert>
+
+            )}
+
+          <div className="d-block d-lg-none">
+
+            <TarjetaCategoria
+              categorias={categoriasPaginadas}
+              abrirModalEdicion={abrirModalEdicion}
+              abrirModalEliminacion={abrirModalEliminacion}
+            />
+
+          </div>
+
+          <div className="d-none d-lg-block">
+
+            <TablaCategorias
+              categorias={categoriasPaginadas}
+              abrirModalEdicion={abrirModalEdicion}
+              generarPDFCategoria={generarPDFCategoria}
+              abrirModalEliminacion={abrirModalEliminacion}
+            />
+
+          </div>
+
+          {categoriasFiltradas.length > 0 && (
+
+            <div className="mt-4">
+
+              <Paginacion
+                registrosPorPagina={registrosPorPagina}
+                totalRegistros={categoriasFiltradas.length}
+                paginaActual={paginaActual}
+                establecerPaginaActual={establecerPaginaActual}
+                establecerRegistrosPorPagina={establecerRegistrosPorPagina}
+              />
+
             </div>
 
-            {/* Grid de Tarjetas */}
-            <Row xs={1} sm={2} md={3} lg={4} className="g-4">
-                {categorias.map((categoria) => (
-                    <Col key={categoria.id}>
-                        <TarjetaCategoria
-                            categoria={categoria}
-                            onVerProductos={handleVerProductos}
-                            onEditar={handleEditar}
-                            onEliminar={handleEliminar}
-                        />
-                    </Col>
-                ))}
-            </Row>
+          )}
 
-            {/* ==================== MODALES ==================== */}
-            <ModalRegistroCategoria
-                show={showRegistroModal}
-                onHide={() => setShowRegistroModal(false)}
-                onGuardar={handleGuardarNueva}
-                loading={loading}
-            />
+        </>
 
-            <ModalEdicionCategoria
-                show={showEditModal}
-                onHide={() => {
-                    setShowEditModal(false);
-                    setCategoriaEditar(null);
-                }}
-                categoria={categoriaEditar}
-                onGuardar={handleGuardarEdicion}
-                loading={loading}
-            />
+      )}
 
-            <ModalEliminacionCategoria
-                show={showDeleteModal}
-                onHide={() => {
-                    setShowDeleteModal(false);
-                    setCategoriaEliminar(null);
-                }}
-                categoria={categoriaEliminar}
-                onConfirmar={handleConfirmarEliminacion}
-                loading={loading}
-            />
-        </Container>
-    );
+      <ModalRegistroCategoria
+        mostrarModal={mostrarModal}
+        setMostrarModal={setMostrarModal}
+        nuevaCategoria={nuevaCategoria}
+        manejoCambioInput={manejoCambioInput}
+        agregarCategoria={agregarCategoria}
+      />
+
+      <ModalEdicionCategoria
+        mostrarModalEdicion={mostrarModalEdicion}
+        setMostrarModalEdicion={setMostrarModalEdicion}
+        categoriaEditar={categoriaEditar}
+        manejoCambioInputEdicion={manejoCambioInputEdicion}
+        actualizarCategoria={actualizarCategoria}
+      />
+
+      <ModalEliminacionCategoria
+        mostrarModalEliminacion={mostrarModalEliminacion}
+        setMostrarModalEliminacion={setMostrarModalEliminacion}
+        eliminarCategoria={eliminarCategoria}
+        categoria={categoriaAEliminar}
+      />
+
+      <NotificacionOperacion
+        {...toast}
+        onCerrar={() =>
+          setToast({
+            ...toast,
+            mostrar: false,
+          })
+        }
+      />
+
+    </Container>
+  );
 };
 
 export default Categorias;

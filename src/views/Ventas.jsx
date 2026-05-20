@@ -41,51 +41,35 @@ const Ventas = () => {
 
       setLoading(true);
 
-      // VENTAS
-      const { data: ventasData, error: errorVentas } = await supabase
+      const { data: ventasData, error: ventasError } = await supabase
         .from("Hecho_Ventas")
         .select("*")
         .order("id_venta", { ascending: false });
 
-      if (errorVentas) {
-        console.error("Error ventas:", errorVentas);
-        setLoading(false);
+      if (ventasError) {
+        console.error("Error ventas:", ventasError);
         return;
       }
 
-      const { data, error } = await supabase
-    .from("Hecho_Ventas")
-    .select(`
-        *,
-        Dim_Producto!id_producto (
-            nombre,
-            imagen,
-            categoria
-        )
-    `)
-    .order("id_venta", { ascending: false });
-
-      // PRODUCTOS
-      const { data: productosData, error: errorProductos } = await supabase
-        .from("Dim_Producto")
+      const { data: productosData, error: productosError } = await supabase
+        .from("productos")
         .select("*");
 
-      if (errorProductos) {
-        console.error("Error productos:", errorProductos);
-        setLoading(false);
+      if (productosError) {
+        console.error("Error productos:", productosError);
         return;
       }
 
-      // UNIR DATOS
       const ventasCompletas = ventasData.map((venta) => {
 
         const producto = productosData.find(
-          (p) => p.id_producto === venta.id_producto
+          (p) =>
+            String(p.id_producto) === String(venta.id_producto)
         );
 
         return {
           ...venta,
-          producto
+          productos: producto || null
         };
       });
 
@@ -98,6 +82,7 @@ const Ventas = () => {
     } finally {
 
       setLoading(false);
+
     }
   };
 
@@ -126,34 +111,160 @@ const Ventas = () => {
 
   return (
 
-    <Container className="py-5">
+    <Container fluid className="py-4 px-lg-5">
 
       {/* HEADER */}
 
-      <div className="d-flex justify-content-between align-items-center mb-5">
+      <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
 
         <div>
 
-          <h1 className="fw-bold mb-1">
-            🧾 Gestión de Ventas
+          <h1 className="fw-bold mb-1 text-dark">
+            Gestión de Ventas
           </h1>
 
           <p className="text-muted mb-0">
-            Administra todas las ventas registradas
+            Administra y controla todas las ventas registradas
           </p>
 
         </div>
 
         <Button
-          variant="success"
+          variant="primary"
           size="lg"
-          className="shadow-sm"
+          className="rounded-4 px-4 shadow-sm fw-semibold"
           onClick={() => setShowRegistro(true)}
         >
           ➕ Nueva Venta
         </Button>
 
       </div>
+
+      {/* ESTADÍSTICAS */}
+
+      <Row className="g-4 mb-4">
+
+        <Col md={4}>
+
+          <Card className="border-0 shadow-sm rounded-4 h-100">
+
+            <Card.Body>
+
+              <div className="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                  <p className="text-muted mb-1">
+                    Total Ventas
+                  </p>
+
+                  <h3 className="fw-bold mb-0">
+                    {ventas.length}
+                  </h3>
+
+                </div>
+
+                <div
+                  className="d-flex align-items-center justify-content-center rounded-4"
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    background: "rgba(59,130,246,0.12)",
+                    fontSize: "1.8rem"
+                  }}
+                >
+                  🧾
+                </div>
+
+              </div>
+
+            </Card.Body>
+
+          </Card>
+
+        </Col>
+
+        <Col md={4}>
+
+          <Card className="border-0 shadow-sm rounded-4 h-100">
+
+            <Card.Body>
+
+              <div className="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                  <p className="text-muted mb-1">
+                    Productos Vendidos
+                  </p>
+
+                  <h3 className="fw-bold mb-0">
+                    {ventas.reduce((acc, venta) => acc + venta.cantidad, 0)}
+                  </h3>
+
+                </div>
+
+                <div
+                  className="d-flex align-items-center justify-content-center rounded-4"
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    background: "rgba(16,185,129,0.12)",
+                    fontSize: "1.8rem"
+                  }}
+                >
+                  📦
+                </div>
+
+              </div>
+
+            </Card.Body>
+
+          </Card>
+
+        </Col>
+
+        <Col md={4}>
+
+          <Card className="border-0 shadow-sm rounded-4 h-100">
+
+            <Card.Body>
+
+              <div className="d-flex justify-content-between align-items-center">
+
+                <div>
+
+                  <p className="text-muted mb-1">
+                    Ingresos Totales
+                  </p>
+
+                  <h3 className="fw-bold text-success mb-0">
+                    C$ {ventas.reduce((acc, venta) => acc + parseFloat(venta.total || 0), 0).toFixed(2)}
+                  </h3>
+
+                </div>
+
+                <div
+                  className="d-flex align-items-center justify-content-center rounded-4"
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    background: "rgba(34,197,94,0.12)",
+                    fontSize: "1.8rem"
+                  }}
+                >
+                  💰
+                </div>
+
+              </div>
+
+            </Card.Body>
+
+          </Card>
+
+        </Col>
+
+      </Row>
 
       {/* LOADING */}
 
@@ -178,24 +289,36 @@ const Ventas = () => {
 
           {/* TABLA DESKTOP */}
 
-          <div className="d-none d-md-block">
+          <div className="d-none d-lg-block">
 
-            <Card className="border-0 shadow rounded-4 overflow-hidden">
+            <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
 
-              <Table hover responsive className="mb-0 align-middle">
+              <div className="p-4 border-bottom bg-white">
 
-                <thead className="table-dark">
+                <h5 className="fw-bold mb-0">
+                  Historial de Ventas
+                </h5>
+
+              </div>
+
+              <Table hover responsive className="align-middle mb-0">
+
+                <thead
+                  style={{
+                    background: "#0f172a",
+                    color: "white"
+                  }}
+                >
 
                   <tr>
-                    <th>ID</th>
-                    <th>Imagen</th>
+
+                    <th className="ps-4">#</th>
                     <th>Producto</th>
                     <th>Categoría</th>
                     <th>Cantidad</th>
                     <th>Total</th>
-                    <th className="text-center">
-                      Acciones
-                    </th>
+                    <th className="text-center">Acciones</th>
+
                   </tr>
 
                 </thead>
@@ -208,55 +331,72 @@ const Ventas = () => {
 
                       <tr key={venta.id_venta}>
 
-                        <td>
+                        <td className="ps-4 fw-semibold">
                           #{venta.id_venta}
                         </td>
 
                         <td>
 
-                          {venta.Dim_Producto?.imagen ? (
+                          <div className="d-flex align-items-center gap-3">
 
-                            <img
-                              src={venta.Dim_Producto.imagen}
-                              alt={venta.Dim_Producto.nombre}
-                              style={{
-                                width: "60px",
-                                height: "60px",
-                                objectFit: "cover",
-                                borderRadius: "10px"
-                              }}
-                            />
+                            {venta.productos?.imagen ? (
 
-                          ) : (
+                              <img
+                                src={venta.productos.imagen}
+                                alt={venta.productos.nombre}
+                                style={{
+                                  width: "65px",
+                                  height: "65px",
+                                  objectFit: "cover",
+                                  borderRadius: "16px"
+                                }}
+                              />
 
-                            <div
-                              className="bg-light d-flex align-items-center justify-content-center"
-                              style={{
-                                width: "60px",
-                                height: "60px",
-                                borderRadius: "10px"
-                              }}
-                            >
-                              📦
+                            ) : (
+
+                              <div
+                                className="bg-light d-flex align-items-center justify-content-center"
+                                style={{
+                                  width: "65px",
+                                  height: "65px",
+                                  borderRadius: "16px",
+                                  fontSize: "1.5rem"
+                                }}
+                              >
+                                📦
+                              </div>
+
+                            )}
+
+                            <div>
+
+                              <h6 className="mb-1 fw-bold">
+                                {venta.productos?.nombre || "Sin producto"}
+                              </h6>
+
+                              <small className="text-muted">
+                                Venta registrada
+                              </small>
+
                             </div>
 
-                          )}
+                          </div>
 
-                        </td>
-
-                        <td className="fw-semibold">
-                          {venta.Dim_Producto?.nombre || "Sin producto"}
                         </td>
 
                         <td>
 
-                          <Badge bg="secondary">
-                            {venta.Dim_Producto?.categoria || "Sin categoría"}
+                          <Badge
+                            bg="light"
+                            text="dark"
+                            className="px-3 py-2 rounded-pill border"
+                          >
+                            {venta.productos?.categoria || "Sin categoría"}
                           </Badge>
 
                         </td>
 
-                        <td>
+                        <td className="fw-semibold">
                           {venta.cantidad}
                         </td>
 
@@ -264,30 +404,41 @@ const Ventas = () => {
                           C$ {parseFloat(venta.total || 0).toFixed(2)}
                         </td>
 
-                        <td className="text-center">
+                        <td>
 
-                          <Button
-                            size="sm"
-                            variant="warning"
-                            className="me-2"
-                            onClick={() => {
-                              setVentaSeleccionada(venta);
-                              setShowEditar(true);
-                            }}
-                          >
-                            ✏️
-                          </Button>
+                          <div className="d-flex justify-content-center gap-2">
 
-                          <Button
-                            size="sm"
-                            variant="danger"
-                            onClick={() => {
-                              setVentaSeleccionada(venta);
-                              setShowEliminar(true);
-                            }}
-                          >
-                            🗑️
-                          </Button>
+                            <Button
+                              variant="light"
+                              className="rounded-circle shadow-sm"
+                              style={{
+                                width: "42px",
+                                height: "42px"
+                              }}
+                              onClick={() => {
+                                setVentaSeleccionada(venta);
+                                setShowEditar(true);
+                              }}
+                            >
+                              ✏️
+                            </Button>
+
+                            <Button
+                              variant="light"
+                              className="rounded-circle shadow-sm"
+                              style={{
+                                width: "42px",
+                                height: "42px"
+                              }}
+                              onClick={() => {
+                                setVentaSeleccionada(venta);
+                                setShowEliminar(true);
+                              }}
+                            >
+                              🗑️
+                            </Button>
+
+                          </div>
 
                         </td>
 
@@ -299,15 +450,23 @@ const Ventas = () => {
 
                     <tr>
 
-                      <td colSpan="7" className="text-center py-5">
+                      <td colSpan="6" className="text-center py-5">
 
-                        <h5>
-                          No hay ventas registradas
-                        </h5>
+                        <div className="py-4">
 
-                        <p className="text-muted">
-                          Agrega una nueva venta
-                        </p>
+                          <div style={{ fontSize: "4rem" }}>
+                            📊
+                          </div>
+
+                          <h4 className="fw-bold mt-3">
+                            No hay ventas registradas
+                          </h4>
+
+                          <p className="text-muted">
+                            Comienza agregando una nueva venta
+                          </p>
+
+                        </div>
 
                       </td>
 
@@ -323,9 +482,9 @@ const Ventas = () => {
 
           </div>
 
-          {/* TARJETAS MOBILE */}
+          {/* MOBILE */}
 
-          <div className="d-block d-md-none">
+          <div className="d-block d-lg-none">
 
             <Row className="g-3">
 
@@ -333,22 +492,22 @@ const Ventas = () => {
 
                 <Col xs={12} key={venta.id_venta}>
 
-                  <Card className="border-0 shadow rounded-4">
+                  <Card className="border-0 shadow-sm rounded-4 overflow-hidden">
 
                     <Card.Body>
 
                       <div className="d-flex gap-3">
 
-                        {venta.Dim_Producto?.imagen ? (
+                        {venta.productos?.imagen ? (
 
                           <img
-                            src={venta.Dim_Producto.imagen}
-                            alt={venta.Dim_Producto.nombre}
+                            src={venta.productos.imagen}
+                            alt={venta.productos.nombre}
                             style={{
-                              width: "80px",
-                              height: "80px",
+                              width: "85px",
+                              height: "85px",
                               objectFit: "cover",
-                              borderRadius: "10px"
+                              borderRadius: "18px"
                             }}
                           />
 
@@ -357,9 +516,10 @@ const Ventas = () => {
                           <div
                             className="bg-light d-flex align-items-center justify-content-center"
                             style={{
-                              width: "80px",
-                              height: "80px",
-                              borderRadius: "10px"
+                              width: "85px",
+                              height: "85px",
+                              borderRadius: "18px",
+                              fontSize: "2rem"
                             }}
                           >
                             📦
@@ -369,28 +529,39 @@ const Ventas = () => {
 
                         <div className="flex-grow-1">
 
-                          <h5 className="mb-1">
-                            {venta.Dim_Producto?.nombre || "Sin producto"}
-                          </h5>
+                          <div className="d-flex justify-content-between">
 
-                          <Badge bg="secondary" className="mb-2">
-                            {venta.Dim_Producto?.categoria || "Sin categoría"}
+                            <h5 className="fw-bold mb-1">
+                              {venta.productos?.nombre || "Sin producto"}
+                            </h5>
+
+                            <span className="text-muted small">
+                              #{venta.id_venta}
+                            </span>
+
+                          </div>
+
+                          <Badge
+                            bg="light"
+                            text="dark"
+                            className="border rounded-pill px-3 py-2 mb-2"
+                          >
+                            {venta.productos?.categoria || "Sin categoría"}
                           </Badge>
 
                           <p className="mb-1">
                             <strong>Cantidad:</strong> {venta.cantidad}
                           </p>
 
-                          <p className="fw-bold text-success mb-3">
+                          <h5 className="fw-bold text-success mb-3">
                             C$ {parseFloat(venta.total || 0).toFixed(2)}
-                          </p>
+                          </h5>
 
                           <div className="d-flex gap-2">
 
                             <Button
-                              size="sm"
                               variant="warning"
-                              className="w-50"
+                              className="rounded-4 w-50 fw-semibold"
                               onClick={() => {
                                 setVentaSeleccionada(venta);
                                 setShowEditar(true);
@@ -400,9 +571,8 @@ const Ventas = () => {
                             </Button>
 
                             <Button
-                              size="sm"
                               variant="danger"
-                              className="w-50"
+                              className="rounded-4 w-50 fw-semibold"
                               onClick={() => {
                                 setVentaSeleccionada(venta);
                                 setShowEliminar(true);
@@ -428,6 +598,7 @@ const Ventas = () => {
             </Row>
 
           </div>
+
         </>
 
       )}

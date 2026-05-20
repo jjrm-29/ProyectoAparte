@@ -1,197 +1,459 @@
 import { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Spinner } from "react-bootstrap";
-import { useSearchParams } from "react-router-dom";   // ← Importante agregar esto
+import {
+    Container,
+    Row,
+    Col,
+    Form,
+    Spinner,
+    Card,
+    Badge,
+    InputGroup
+} from "react-bootstrap";
+
+import { useSearchParams } from "react-router-dom";
+
+import { supabase } from "../database/supabaseconfig";
+
 import TarjetaCatalogo from "../../src/components/catalogo/TarjetaCatalogo";
 
 const Catalogo = () => {
-    const [searchParams] = useSearchParams();   // ← Para leer ?categoria=...
+
+    const [searchParams] = useSearchParams();
 
     const [productos, setProductos] = useState([]);
     const [loading, setLoading] = useState(true);
+
     const [busqueda, setBusqueda] = useState("");
     const [categoriaFiltro, setCategoriaFiltro] = useState("Todas");
 
-    // ==================== LEER FILTRO DESDE LA URL ====================
+    // =========================
+    // LEER CATEGORÍA DESDE URL
+    // =========================
+
     useEffect(() => {
+
         const categoriaDesdeURL = searchParams.get("categoria");
-        
+
         if (categoriaDesdeURL) {
+
             setCategoriaFiltro(categoriaDesdeURL);
+
         }
+
     }, [searchParams]);
 
-    // ==================== CARGAR PRODUCTOS ====================
-    useEffect(() => {
-        const productosConImagenes = [
-            {
-                id: 1,
-                nombre: "Café Molido Premium",
-                precio: 150,
-                categoria: "Bebidas",           // ← Corregí aquí (estaba en Despensa)
-                imagen: "https://http2.mlstatic.com/D_NQ_NP_706638-MCO82270894377_022025-O.webp",
-                descripcion: "Café 100% arábica tostado nicaragüense"
-            },
-            {
-                id: 2,
-                nombre: "Arroz Integral 1LB",
-                precio: 27,
-                categoria: "Alimentos",
-                imagen: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&h=600&fit=crop",
-                descripcion: "Arroz integral de larga duración"
-            },
-            {
-                id: 3,
-                nombre: "Aceite de Oliva Extra Virgen",
-                precio: 120,
-                categoria: "Despensa",
-                imagen: "https://tse1.mm.bing.net/th/id/OIP.t4wQKuIzZDUUTERtSad8CAHaJQ?rs=1&pid=ImgDetMain&o=7&rm=3",
-                descripcion: "Aceite de oliva importado 500ml"
-            },
-            {
-                id: 4,
-                nombre: "Leche en Polvo",
-                precio: 20,
-                categoria: "Lácteos",
-                imagen: "https://tse4.mm.bing.net/th/id/OIP.1VpIWsny8P0GKOOkNOcsCwAAAA?rs=1&pid=ImgDetMain&o=7&rm=3",
-                descripcion: "Leche en polvo fortificada"
-            },
-            {
-                id: 5,
-                nombre: "Frijoles Rojos 1LB",
-                precio: 45,
-                categoria: "Alimentos",
-                imagen: "https://tse3.mm.bing.net/th/id/OIP.zU6-X-TSiz-KSO3oqE1auwHaEK?rs=1&pid=ImgDetMain&o=7&rm=3",
-                descripcion: "Frijoles rojos seleccionados"
-            },
-            {
-                id: 6,
-                nombre: "Coca Cola Lata",
-                precio: 30,
-                categoria: "Bebidas",
-                imagen: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=600&h=600&fit=crop",
-                descripcion: "Coca Cola Lata"
-            },
-            {
-                id: 7,
-                nombre: "Pasta Spaghetti 500g",
-                precio: 30,
-                categoria: "Despensa",
-                imagen: "https://tse4.mm.bing.net/th/id/OIP.Wos-0g0qvUS2FV4bwKfGkQHaHa?rs=1&pid=ImgDetMain&o=7&rm=3",
-                descripcion: "Pasta italiana de sémola"
-            },
-            {
-                id: 8,
-                nombre: "Jabón de baño",
-                precio: 30,
-                categoria: "Limpieza",
-                imagen: "https://tse1.mm.bing.net/th/id/OIP.dHNpk8eVy0ADxiM-QfyE-QHaHa?rs=1&pid=ImgDetMain&o=7&rm=3",
-                descripcion: "Jabón tradicional para ropa"
-            },
-            {
-                id: 9,
-                nombre: "Galletas María 400g",
-                precio: 25,
-                categoria: "Alimentos",
-                imagen: "https://tse2.mm.bing.net/th/id/OIP.J5mDvU0Cim_lOm9ZHFsojQHaHa?rs=1&pid=ImgDetMain&o=7&rm=3",
-                descripcion: "Galletas clásicas María"
-            },
-            {
-                id: 10,
-                nombre: "Detergente Líquido 1L",
-                precio: 70,
-                categoria: "Limpieza",
-                imagen: "https://tse3.mm.bing.net/th/id/OIP.L7HL0QG64ucur-USA-FssgHaHa?rs=1&pid=ImgDetMain&o=7&rm=3",
-                descripcion: "Detergente para lavadora"
-            }
-        ];
+    // =========================
+    // CARGAR PRODUCTOS DESDE SUPABASE
+    // =========================
 
-        setTimeout(() => {
-            setProductos(productosConImagenes);
-            setLoading(false);
-        }, 800);
+    useEffect(() => {
+
+        cargarProductos();
+
     }, []);
 
-    // ==================== FILTRADO ====================
-    const productosFiltrados = productos.filter(producto => {
-        const coincideBusqueda =
-            producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-            producto.descripcion.toLowerCase().includes(busqueda.toLowerCase());
+    const cargarProductos = async () => {
 
-        const coincideCategoria = categoriaFiltro === "Todas" ||
+        try {
+
+            setLoading(true);
+
+            const { data, error } = await supabase
+                .from("productos")
+                .select("*")
+                .order("id_producto", { ascending: false });
+
+            if (error) throw error;
+
+            setProductos(data || []);
+
+        } catch (error) {
+
+            console.error("Error al cargar catálogo:", error);
+
+        } finally {
+
+            setLoading(false);
+
+        }
+    };
+
+    // =========================
+    // FILTROS
+    // =========================
+
+    const productosFiltrados = productos.filter((producto) => {
+
+        const coincideBusqueda =
+
+            producto.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+
+            producto.descripcion?.toLowerCase().includes(busqueda.toLowerCase());
+
+        const coincideCategoria =
+
+            categoriaFiltro === "Todas" ||
+
             producto.categoria === categoriaFiltro;
 
         return coincideBusqueda && coincideCategoria;
     });
 
     return (
-        <Container className="margen-superior-main py-4">
-            <div className="text-center mb-5">
-                <h1 className="display-5 fw-bold">
-                    {categoriaFiltro !== "Todas" 
-                        ? `Categoría: ${categoriaFiltro}` 
-                        : "Nuestro Catálogo"}
-                </h1>
-                <p className="lead text-muted">
-                    {categoriaFiltro !== "Todas" 
-                        ? `Mostrando productos de ${categoriaFiltro}` 
-                        : "Encuentra todo lo que necesitas en la pulpería"}
-                </p>
-            </div>
 
-            {/* Buscador y Filtro */}
-            <Row className="mb-4 g-3 justify-content-center">
-                <Col md={7}>
-                    <Form.Control
-                        type="text"
-                        placeholder="¿Qué estás buscando?"
-                        value={busqueda}
-                        onChange={(e) => setBusqueda(e.target.value)}
-                        size="lg"
-                    />
+        <Container fluid className="margen-superior-main py-4 px-lg-5">
+
+            {/* HERO */}
+
+            <Card className="border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+
+                <div
+                    style={{
+                        background:
+                            "linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #3b82f6 100%)"
+                    }}
+                    className="text-white p-5"
+                >
+
+                    <Row className="align-items-center">
+
+                        <Col lg={8}>
+
+                            <Badge
+                                bg="light"
+                                text="dark"
+                                className="rounded-pill px-3 py-2 mb-3 fw-semibold"
+                            >
+                                Catálogo Digital
+                            </Badge>
+
+                            <h1 className="fw-bold display-5 mb-3">
+
+                                {categoriaFiltro !== "Todas"
+
+                                    ? `Categoría: ${categoriaFiltro}`
+
+                                    : "Explora Nuestro Catálogo"}
+
+                            </h1>
+
+                            <p
+                                className="mb-0"
+                                style={{
+                                    fontSize: "1.1rem",
+                                    opacity: 0.9
+                                }}
+                            >
+                                Descubre productos organizados por categorías
+                                con una experiencia moderna y rápida.
+                            </p>
+
+                        </Col>
+
+                        <Col
+                            lg={4}
+                            className="text-center d-none d-lg-block"
+                        >
+
+                            <div
+                                style={{
+                                    fontSize: "7rem"
+                                }}
+                            >
+                                🛒
+                            </div>
+
+                        </Col>
+
+                    </Row>
+
+                </div>
+
+            </Card>
+
+            {/* FILTROS */}
+
+            <Card className="border-0 shadow-sm rounded-4 mb-5">
+
+                <Card.Body className="p-4">
+
+                    <Row className="g-3 align-items-center">
+
+                        <Col lg={8}>
+
+                            <InputGroup size="lg">
+
+                                <InputGroup.Text className="bg-white border-end-0 rounded-start-4">
+                                    🔍
+                                </InputGroup.Text>
+
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Buscar productos..."
+                                    value={busqueda}
+                                    onChange={(e) =>
+                                        setBusqueda(e.target.value)
+                                    }
+                                    className="border-start-0 rounded-end-4 shadow-none"
+                                />
+
+                            </InputGroup>
+
+                        </Col>
+
+                        <Col lg={4}>
+
+                            <Form.Select
+                                value={categoriaFiltro}
+                                onChange={(e) =>
+                                    setCategoriaFiltro(e.target.value)
+                                }
+                                size="lg"
+                                className="rounded-4 shadow-none"
+                            >
+
+                                <option value="Todas">
+                                    Todas las categorías
+                                </option>
+
+                                <option value="Alimentos">
+                                    Alimentos
+                                </option>
+
+                                <option value="Despensa">
+                                    Despensa
+                                </option>
+
+                                <option value="Lácteos">
+                                    Lácteos
+                                </option>
+
+                                <option value="Limpieza">
+                                    Limpieza
+                                </option>
+
+                                <option value="Bebidas">
+                                    Bebidas
+                                </option>
+
+                            </Form.Select>
+
+                        </Col>
+
+                    </Row>
+
+                </Card.Body>
+
+            </Card>
+
+            {/* ESTADÍSTICAS */}
+
+            <Row className="g-4 mb-5">
+
+                <Col md={4}>
+
+                    <Card className="border-0 shadow-sm rounded-4 h-100">
+
+                        <Card.Body>
+
+                            <div className="d-flex justify-content-between align-items-center">
+
+                                <div>
+
+                                    <p className="text-muted mb-1">
+                                        Productos
+                                    </p>
+
+                                    <h3 className="fw-bold mb-0">
+                                        {productos.length}
+                                    </h3>
+
+                                </div>
+
+                                <div
+                                    className="rounded-4 d-flex align-items-center justify-content-center"
+                                    style={{
+                                        width: "60px",
+                                        height: "60px",
+                                        background: "rgba(59,130,246,0.12)",
+                                        fontSize: "1.8rem"
+                                    }}
+                                >
+                                    📦
+                                </div>
+
+                            </div>
+
+                        </Card.Body>
+
+                    </Card>
+
                 </Col>
-                <Col md={3}>
-                    <Form.Select
-                        value={categoriaFiltro}
-                        onChange={(e) => setCategoriaFiltro(e.target.value)}
-                        size="lg"
-                    >
-                        <option value="Todas">Todas las categorías</option>
-                        <option value="Alimentos">Alimentos</option>
-                        <option value="Despensa">Despensa</option>
-                        <option value="Lácteos">Lácteos</option>
-                        <option value="Limpieza">Limpieza</option>
-                        <option value="Bebidas">Bebidas</option>
-                    </Form.Select>
+
+                <Col md={4}>
+
+                    <Card className="border-0 shadow-sm rounded-4 h-100">
+
+                        <Card.Body>
+
+                            <div className="d-flex justify-content-between align-items-center">
+
+                                <div>
+
+                                    <p className="text-muted mb-1">
+                                        Categorías
+                                    </p>
+
+                                    <h3 className="fw-bold mb-0">
+                                        5
+                                    </h3>
+
+                                </div>
+
+                                <div
+                                    className="rounded-4 d-flex align-items-center justify-content-center"
+                                    style={{
+                                        width: "60px",
+                                        height: "60px",
+                                        background: "rgba(16,185,129,0.12)",
+                                        fontSize: "1.8rem"
+                                    }}
+                                >
+                                    🏷️
+                                </div>
+
+                            </div>
+
+                        </Card.Body>
+
+                    </Card>
+
                 </Col>
+
+                <Col md={4}>
+
+                    <Card className="border-0 shadow-sm rounded-4 h-100">
+
+                        <Card.Body>
+
+                            <div className="d-flex justify-content-between align-items-center">
+
+                                <div>
+
+                                    <p className="text-muted mb-1">
+                                        Resultados
+                                    </p>
+
+                                    <h3 className="fw-bold mb-0">
+                                        {productosFiltrados.length}
+                                    </h3>
+
+                                </div>
+
+                                <div
+                                    className="rounded-4 d-flex align-items-center justify-content-center"
+                                    style={{
+                                        width: "60px",
+                                        height: "60px",
+                                        background: "rgba(234,179,8,0.12)",
+                                        fontSize: "1.8rem"
+                                    }}
+                                >
+                                    🔎
+                                </div>
+
+                            </div>
+
+                        </Card.Body>
+
+                    </Card>
+
+                </Col>
+
             </Row>
 
+            {/* LOADING */}
+
             {loading ? (
+
                 <div className="text-center py-5">
-                    <Spinner animation="border" variant="primary" size="lg" />
-                    <p className="mt-3 text-muted">Cargando productos...</p>
+
+                    <Spinner
+                        animation="border"
+                        variant="primary"
+                    />
+
+                    <p className="mt-3 text-muted">
+                        Cargando productos...
+                    </p>
+
                 </div>
+
             ) : (
-                <Row xs={1} sm={2} md={3} lg={4} className="g-4">
+
+                <>
                     {productosFiltrados.length > 0 ? (
-                        productosFiltrados.map((producto) => (
-                            <Col key={producto.id}>
-                                <TarjetaCatalogo producto={producto} />
-                            </Col>
-                        ))
+
+                        <Row
+                            xs={1}
+                            sm={2}
+                            md={2}
+                            lg={3}
+                            xl={4}
+                            className="g-4"
+                        >
+
+                            {productosFiltrados.map((producto) => (
+
+                                <Col key={producto.id_producto}>
+
+                                    <TarjetaCatalogo
+                                        producto={producto}
+                                    />
+
+                                </Col>
+
+                            ))}
+
+                        </Row>
+
                     ) : (
-                        <Col>
-                            <div className="text-center py-5">
-                                <h4>No encontramos productos</h4>
-                                <p className="text-muted">
-                                    {categoriaFiltro !== "Todas" 
-                                        ? `No hay productos en la categoría "${categoriaFiltro}"` 
+
+                        <Card className="border-0 shadow-sm rounded-4">
+
+                            <Card.Body className="text-center py-5">
+
+                                <div
+                                    style={{
+                                        fontSize: "5rem"
+                                    }}
+                                >
+                                    🔍
+                                </div>
+
+                                <h3 className="fw-bold mt-3">
+                                    No encontramos productos
+                                </h3>
+
+                                <p className="text-muted mb-0">
+
+                                    {categoriaFiltro !== "Todas"
+
+                                        ? `No existen productos en la categoría "${categoriaFiltro}"`
+
                                         : "Intenta con otra búsqueda o filtro"}
+
                                 </p>
-                            </div>
-                        </Col>
+
+                            </Card.Body>
+
+                        </Card>
+
                     )}
-                </Row>
+                </>
+
             )}
+
         </Container>
     );
 };
