@@ -54,11 +54,7 @@ const Categorias = () => {
     id: "",
     nombre: "",
     descripcion: "",
-  });
-
-  const [nuevaCategoria, setNuevaCategoria] = useState({
-    nombre: "",
-    descripcion: "",
+    imagen: ""
   });
 
   // ============================
@@ -98,7 +94,7 @@ const Categorias = () => {
       setCargando(true);
 
       const { data, error } = await supabase
-        .from("Categorias")
+        .from("categorias")
         .select("*")
         .order("id", { ascending: true });
 
@@ -146,7 +142,7 @@ const Categorias = () => {
       const textoLower = textoBusqueda.toLowerCase();
 
       const filtradas = categorias.filter((cat) =>
-        cat.nombre.toLowerCase().includes(textoLower) ||
+        cat.nombre?.toLowerCase().includes(textoLower) ||
         cat.descripcion?.toLowerCase().includes(textoLower)
       );
 
@@ -170,11 +166,7 @@ const Categorias = () => {
 
   const abrirModalEdicion = (categoria) => {
 
-    setCategoriaEditar({
-      id: categoria.id,
-      nombre: categoria.nombre,
-      descripcion: categoria.descripcion,
-    });
+    setCategoriaEditar(categoria);
 
     setMostrarModalEdicion(true);
   };
@@ -184,90 +176,6 @@ const Categorias = () => {
     setCategoriaAEliminar(categoria);
 
     setMostrarModalEliminacion(true);
-  };
-
-  // ============================
-  // INPUTS
-  // ============================
-
-  const manejoCambioInput = (e) => {
-
-    const { name, value } = e.target;
-
-    setNuevaCategoria((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const manejoCambioInputEdicion = (e) => {
-
-    const { name, value } = e.target;
-
-    setCategoriaEditar((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  // ============================
-  // AGREGAR
-  // ============================
-
-  const agregarCategoria = async () => {
-
-    try {
-
-      if (
-        !nuevaCategoria.nombre.trim() ||
-        !nuevaCategoria.descripcion.trim()
-      ) {
-
-        setToast({
-          mostrar: true,
-          mensaje: "Debe llenar todos los campos",
-          tipo: "advertencia",
-        });
-
-        return;
-      }
-
-      const { error } = await supabase
-        .from("Categorias")
-        .insert([
-          {
-            nombre: nuevaCategoria.nombre,
-            descripcion: nuevaCategoria.descripcion,
-          },
-        ]);
-
-      if (error) throw error;
-
-      await cargarCategorias();
-
-      setToast({
-        mostrar: true,
-        mensaje: "Categoría registrada correctamente",
-        tipo: "exito",
-      });
-
-      setNuevaCategoria({
-        nombre: "",
-        descripcion: "",
-      });
-
-      setMostrarModal(false);
-
-    } catch (err) {
-
-      console.error(err);
-
-      setToast({
-        mostrar: true,
-        mensaje: "Error al registrar categoría",
-        tipo: "error",
-      });
-    }
   };
 
   // ============================
@@ -281,7 +189,7 @@ const Categorias = () => {
     try {
 
       const { error } = await supabase
-        .from("Categorias")
+        .from("categorias")
         .delete()
         .eq("id", categoriaAEliminar.id);
 
@@ -304,46 +212,6 @@ const Categorias = () => {
       setToast({
         mostrar: true,
         mensaje: "Error al eliminar categoría",
-        tipo: "error",
-      });
-    }
-  };
-
-  // ============================
-  // ACTUALIZAR
-  // ============================
-
-  const actualizarCategoria = async () => {
-
-    try {
-
-      const { error } = await supabase
-        .from("Categorias")
-        .update({
-          nombre: categoriaEditar.nombre,
-          descripcion: categoriaEditar.descripcion,
-        })
-        .eq("id", categoriaEditar.id);
-
-      if (error) throw error;
-
-      await cargarCategorias();
-
-      setToast({
-        mostrar: true,
-        mensaje: "Categoría actualizada correctamente",
-        tipo: "exito",
-      });
-
-      setMostrarModalEdicion(false);
-
-    } catch (err) {
-
-      console.error(err);
-
-      setToast({
-        mostrar: true,
-        mensaje: "Error al actualizar categoría",
         tipo: "error",
       });
     }
@@ -387,9 +255,10 @@ const Categorias = () => {
             <Col md={6}>
 
               <CuadroBusquedas
-                textoBusqueda={textoBusqueda}
-                manejarCambioBusqueda={manejarBusqueda}
-                placeholder="Buscar categoría..."
+                categorias={categorias}
+                onBuscar={(texto, categoria) => {
+                  console.log(texto, categoria);
+                }}
               />
 
             </Col>
@@ -469,27 +338,103 @@ const Categorias = () => {
 
       )}
 
+      {/* MODAL REGISTRO */}
+
       <ModalRegistroCategoria
-        mostrarModal={mostrarModal}
-        setMostrarModal={setMostrarModal}
-        nuevaCategoria={nuevaCategoria}
-        manejoCambioInput={manejoCambioInput}
-        agregarCategoria={agregarCategoria}
+        show={mostrarModal}
+        onHide={() => setMostrarModal(false)}
+        loading={cargando}
+        onGuardar={async (datos) => {
+
+          try {
+
+            const { error } = await supabase
+              .from("categorias")
+              .insert([
+                {
+                  nombre: datos.nombre,
+                  descripcion: datos.descripcion,
+                  imagen: datos.imagen
+                }
+              ]);
+
+            if (error) throw error;
+
+            await cargarCategorias();
+
+            setToast({
+              mostrar: true,
+              mensaje: "Categoría registrada correctamente",
+              tipo: "exito",
+            });
+
+            setMostrarModal(false);
+
+          } catch (err) {
+
+            console.error(err);
+
+            setToast({
+              mostrar: true,
+              mensaje: "Error al registrar categoría",
+              tipo: "error",
+            });
+          }
+        }}
       />
+
+      {/* MODAL EDITAR */}
 
       <ModalEdicionCategoria
-        mostrarModalEdicion={mostrarModalEdicion}
-        setMostrarModalEdicion={setMostrarModalEdicion}
-        categoriaEditar={categoriaEditar}
-        manejoCambioInputEdicion={manejoCambioInputEdicion}
-        actualizarCategoria={actualizarCategoria}
+        show={mostrarModalEdicion}
+        onHide={() => setMostrarModalEdicion(false)}
+        categoria={categoriaEditar}
+        onGuardar={async (datosActualizados) => {
+
+          try {
+
+            const { error } = await supabase
+              .from("categorias")
+              .update({
+                nombre: datosActualizados.nombre,
+                descripcion: datosActualizados.descripcion,
+                imagen: datosActualizados.imagen
+              })
+              .eq("id", categoriaEditar.id);
+
+            if (error) throw error;
+
+            await cargarCategorias();
+
+            setToast({
+              mostrar: true,
+              mensaje: "Categoría actualizada correctamente",
+              tipo: "exito",
+            });
+
+            setMostrarModalEdicion(false);
+
+          } catch (err) {
+
+            console.error(err);
+
+            setToast({
+              mostrar: true,
+              mensaje: "Error al actualizar categoría",
+              tipo: "error",
+            });
+          }
+        }}
       />
 
+      {/* MODAL ELIMINAR */}
+
       <ModalEliminacionCategoria
-        mostrarModalEliminacion={mostrarModalEliminacion}
-        setMostrarModalEliminacion={setMostrarModalEliminacion}
-        eliminarCategoria={eliminarCategoria}
+        show={mostrarModalEliminacion}
+        onHide={() => setMostrarModalEliminacion(false)}
         categoria={categoriaAEliminar}
+        onConfirmar={eliminarCategoria}
+        loading={cargando}
       />
 
       <NotificacionOperacion

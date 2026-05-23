@@ -4,81 +4,136 @@ import { Modal, Button, Spinner, Alert } from "react-bootstrap";
 const ModalEliminacionCategoria = ({
     show,
     onHide,
-    categoria,        // La categoría que se va a eliminar
-    onConfirmar,      // Función que se ejecuta al confirmar la eliminación
+    categoria,
+    onConfirmar,
     loading = false
 }) => {
+
     const [error, setError] = useState("");
 
-    const handleConfirmar = () => {
-        if (!categoria) return;
-        
-        setError("");
-        onConfirmar(categoria);
+    const handleConfirmar = async () => {
+
+        try {
+
+            setError("");
+
+            if (!categoria) {
+                setError("No se encontró la categoría");
+                return;
+            }
+
+            await onConfirmar(categoria);
+
+        } catch (err) {
+
+            console.error(err);
+
+            setError("Error al eliminar categoría");
+        }
     };
 
     if (!categoria) return null;
 
     return (
-        <Modal 
-            show={show} 
+
+        <Modal
+            show={show}
             onHide={onHide}
             centered
             backdrop="static"
         >
-            <Modal.Header closeButton>
-                <Modal.Title className="text-danger">
+
+            <Modal.Header closeButton className="border-0">
+
+                <Modal.Title className="text-danger fw-bold">
                     🗑️ Eliminar Categoría
                 </Modal.Title>
+
             </Modal.Header>
 
             <Modal.Body>
-                {error && <Alert variant="danger">{error}</Alert>}
+
+                {error && (
+
+                    <Alert variant="danger">
+                        {error}
+                    </Alert>
+
+                )}
 
                 <div className="text-center py-3">
+
                     <div className="mb-4">
-                        <span style={{ fontSize: "3.5rem" }}>⚠️</span>
-                    </div>
-                    
-                    <h5>¿Estás seguro de eliminar esta categoría?</h5>
-                    
-                    <div className="my-4 p-3 bg-light rounded">
-                        <strong>{categoria.nombre}</strong>
-                        <p className="text-muted mb-0 small mt-1">
-                            {categoria.descripcion}
-                        </p>
+
+                        <span style={{ fontSize: "4rem" }}>
+                            ⚠️
+                        </span>
+
                     </div>
 
-                    <p className="text-danger fw-semibold">
-                        Esta acción es irreversible.<br />
-                        La categoría será eliminada permanentemente.
+                    <h4 className="fw-bold mb-3">
+                        ¿Deseas eliminar esta categoría?
+                    </h4>
+
+                    <div className="bg-light rounded-4 p-4 shadow-sm">
+
+                        <h5 className="fw-bold text-dark mb-2">
+                            {categoria.nombre}
+                        </h5>
+
+                        <p className="text-muted mb-0">
+                            {categoria.descripcion || "Sin descripción"}
+                        </p>
+
+                    </div>
+
+                    <p className="text-danger fw-semibold mt-4 mb-0">
+                        Esta acción no se puede deshacer.
                     </p>
+
                 </div>
+
             </Modal.Body>
 
-            <Modal.Footer>
-                <Button 
-                    variant="secondary" 
+            <Modal.Footer className="border-0">
+
+                <Button
+                    variant="secondary"
+                    className="rounded-3"
                     onClick={onHide}
                     disabled={loading}
                 >
                     Cancelar
                 </Button>
-                <Button 
-                    variant="danger" 
+
+                <Button
+                    variant="danger"
+                    className="rounded-3"
                     onClick={handleConfirmar}
                     disabled={loading}
                 >
+
                     {loading ? (
+
                         <>
-                            <Spinner animation="border" size="sm" className="me-2" />
+                            <Spinner
+                                animation="border"
+                                size="sm"
+                                className="me-2"
+                            />
                             Eliminando...
                         </>
+
                     ) : (
-                        "Sí, Eliminar Categoría"
+
+                        "Eliminar"
+
                     )}
+
                 </Button>
+
             </Modal.Footer>
+
         </Modal>
     );
 };

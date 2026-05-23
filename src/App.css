@@ -1,181 +1,472 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+
+
 :root {
-    --primary-dark: #0f172a;
-    --primary: #1e3a8a;
-    --primary-light: #3b82f6;
-    --primary-soft: #60a5fa;
-    --bg-page: #f1f5f9;
-    --text-light: #ffffff;
-    --text-muted: rgba(255, 255, 255, 0.9);
-    --shadow-lg: 0 18px 45px rgba(15, 23, 42, 0.25);
-    --shadow-md: 0 10px 25px rgba(15, 23, 42, 0.18);
-    --radius-lg: 24px;
-    --radius-md: 16px;
-    --radius-sm: 12px;
+
+  --color-primary: #2563eb;
+  --color-primary-dark: #1d4ed8;
+  --color-secondary: #0f172a;
+  --color-success: #16a34a;
+  --color-danger: #dc2626;
+  --color-warning: #f59e0b;
+
+  --color-bg: #0b1120;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f8fafc;
+
+  --color-text: #0f172a;
+  --color-text-light: #64748b;
+
+  --shadow-sm: 0 4px 10px rgba(15, 23, 42, .08);
+  --shadow-md: 0 8px 24px rgba(15, 23, 42, .12);
+  --shadow-lg: 0 18px 40px rgba(15, 23, 42, .18);
+
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 24px;
 }
 
-/* ====================== NAVBAR ====================== */
+/* =========================================
+   BODY
+========================================= */
 
-.color-navbar {
-    background: linear-gradient(90deg, var(--primary-dark) 0%, var(--primary) 50%, var(--primary-light) 100%) !important;
-    box-shadow: var(--shadow-md);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(10px);
+body {
+
+  margin: 0;
+  padding: 0;
+
+  font-family: "Inter", sans-serif;
+
+  background:
+    radial-gradient(circle at top left, #1e3a8a 0%, transparent 25%),
+    radial-gradient(circle at bottom right, #2563eb 0%, transparent 20%),
+    linear-gradient(135deg,
+      #020617 0%,
+      #0f172a 40%,
+      #111827 100%);
+
+  background-attachment: fixed;
+
+  color: #f8fafc;
+  min-height: 100vh;
+
+  overflow-x: hidden;
 }
 
-.navbar-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.color-texto-marca {
-    color: var(--text-light) !important;
-    font-size: 1.35rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    line-height: 1;
-}
-
-.color-navbar .nav-link {
-    color: var(--text-muted) !important;
-    font-weight: 500;
-    transition: color 0.25s ease, transform 0.25s ease, opacity 0.25s ease;
-    position: relative;
-}
-
-.color-navbar .nav-link:hover {
-    color: var(--text-light) !important;
-    transform: translateY(-1px);
-}
-
-.color-navbar .nav-link::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: -4px;
-    width: 0;
-    height: 2px;
-    background: var(--text-light);
-    transition: width 0.25s ease;
-    border-radius: 999px;
-}
-
-.color-navbar .nav-link:hover::after {
-    width: 100%;
-}
-
-.color-navbar .btn-outline-light {
-    border-color: rgba(255, 255, 255, 0.45);
-    color: white;
-    border-radius: 999px;
-    transition: all 0.25s ease;
-}
-
-.color-navbar .btn-outline-light:hover {
-    background-color: rgba(255, 255, 255, 0.14);
-    border-color: rgba(255, 255, 255, 0.85);
-    color: white;
-    transform: translateY(-1px);
-}
-
-/* ====================== UTILIDADES GENERALES ====================== */
+/* =========================================
+   MAIN
+========================================= */
 
 .margen-superior-main {
-    margin-top: 80px;
+
+  margin-top: 40px;
+  padding: 25px;
 }
 
-/* ====================== LOGIN - DISEÑO PREMIUM ====================== */
+/* =========================================
+   NAVBAR
+========================================= */
 
-.login-page {
-    background: linear-gradient(135deg, var(--primary-dark) 0%, #1e40af 50%, var(--primary-light) 100%);
-    min-height: 100vh;
-    position: relative;
-    overflow: hidden;
+.color-navbar {
+
+  background:
+    rgba(15, 23, 42, .75) !important;
+
+  backdrop-filter: blur(14px);
+
+  border-bottom:
+    1px solid rgba(255, 255, 255, .08);
+
+  box-shadow:
+    0 8px 30px rgba(0, 0, 0, .25);
 }
 
-.login-page::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: url("https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200") center/cover no-repeat;
-    opacity: 0.08;
-    z-index: 0;
-    pointer-events: none;
+.color-text-marca {
+
+  color: #ffffff !important;
+
+  font-size: 22px;
+  font-weight: 800;
+
+  letter-spacing: .8px;
+
+  transition: .3s ease;
 }
 
-.login-card {
-    background: rgba(255, 255, 255, 0.96);
-    border-radius: var(--radius-lg);
-    position: relative;
-    z-index: 1;
-    box-shadow: 0 25px 60px rgba(15, 23, 42, 0.28);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    overflow: hidden;
-    backdrop-filter: blur(12px);
+.color-text-marca:hover {
+
+  color: #93c5fd !important;
+
+  transform: scale(1.03);
 }
 
-.login-header {
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
-    margin: 0;
-    padding: 2.5rem 1.5rem;
-    color: white;
-    text-align: center;
+/* =========================================
+   BOTONES
+========================================= */
+
+.btn {
+
+  border: none !important;
+
+  border-radius: 14px !important;
+
+  font-weight: 600 !important;
+
+  padding: 10px 18px !important;
+
+  transition: .25s ease !important;
 }
 
-.login-card .form-control {
-    border-radius: 14px;
-    padding: 14px 18px;
-    border: 1.5px solid #cbd5e1;
-    font-size: 1rem;
-    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
-    background-color: #fff;
-}
+.btn:hover {
 
-.login-card .form-control:focus {
-    border-color: var(--primary-soft);
-    box-shadow: 0 0 0 0.25rem rgba(96, 165, 250, 0.18);
-    outline: none;
-    transform: translateY(-1px);
-}
-
-.login-card .form-label {
-    font-weight: 600;
-    color: #1e293b;
-    margin-bottom: 0.45rem;
-}
-
-.login-card .btn {
-    border-radius: 14px;
-    font-weight: 600;
-    transition: all 0.25s ease;
-}
-
-/* ====================== BOTONES Y UTILIDADES ====================== */
-
-.boton-ancho-auto {
-    width: auto !important;
+  transform: translateY(-2px);
 }
 
 .btn-primary {
-    background: linear-gradient(90deg, var(--primary-light), var(--primary-soft));
-    border: none;
-    transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+
+  background:
+    linear-gradient(135deg,
+      #2563eb,
+      #3b82f6) !important;
+
+  box-shadow:
+    0 8px 18px rgba(37, 99, 235, .35);
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(59, 130, 246, 0.32);
-    filter: brightness(1.02);
+
+  box-shadow:
+    0 12px 24px rgba(37, 99, 235, .45);
 }
 
-.btn-primary:focus {
-    box-shadow: 0 0 0 0.25rem rgba(96, 165, 250, 0.25);
+.btn-success {
+
+  background:
+    linear-gradient(135deg,
+      #16a34a,
+      #22c55e) !important;
+
+  box-shadow:
+    0 8px 18px rgba(34, 197, 94, .35);
 }
 
-/* ====================== BASE ====================== */
+.btn-success:hover {
 
-body {
-    background-color: var(--bg-page);
-    color: #0f172a;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-shadow:
+    0 12px 24px rgba(34, 197, 94, .45);
+}
+
+.btn-warning {
+
+  color: white !important;
+
+  background:
+    linear-gradient(135deg,
+      #f59e0b,
+      #f97316) !important;
+
+  box-shadow:
+    0 8px 18px rgba(249, 115, 22, .35);
+}
+
+.btn-danger {
+
+  background:
+    linear-gradient(135deg,
+      #dc2626,
+      #ef4444) !important;
+
+  box-shadow:
+    0 8px 18px rgba(239, 68, 68, .35);
+}
+
+.btn-light {
+
+  background: #ffffff !important;
+
+  color: #0f172a !important;
+
+  box-shadow: var(--shadow-sm);
+}
+
+/* =========================================
+   CARDS
+========================================= */
+
+.card {
+
+  border: none !important;
+
+  border-radius: var(--radius-lg) !important;
+
+  background:
+    rgba(255, 255, 255, .96) !important;
+
+  color: var(--color-text);
+
+  overflow: hidden;
+
+  backdrop-filter: blur(12px);
+
+  box-shadow: var(--shadow-md);
+
+  transition: .3s ease;
+}
+
+.card:hover {
+
+  transform: translateY(-5px);
+
+  box-shadow: var(--shadow-lg);
+}
+
+/* =========================================
+   LOGIN CARD
+========================================= */
+
+.login-card {
+
+  background:
+    rgba(255, 255, 255, .10) !important;
+
+  border:
+    1px solid rgba(255, 255, 255, .12) !important;
+
+  backdrop-filter: blur(18px);
+
+  color: white !important;
+
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, .35);
+}
+
+/* =========================================
+   INPUTS
+========================================= */
+
+.form-control,
+.form-select{
+
+  border-top-right-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+
+  border:
+    1px solid rgba(0,0,0,0.08) !important;
+
+  padding: 10px 14px;
+
+  transition: 0.3s ease;
+}
+
+.form-control:focus,
+.form-select:focus {
+
+  border-color: #3b82f6 !important;
+
+  box-shadow:
+    0 0 0 .20rem rgba(59, 130, 246, .20) !important;
+}
+
+/* =========================================
+   TABLAS
+========================================= */
+
+.table {
+
+  overflow: hidden;
+
+  border-radius: 20px !important;
+
+  background: white;
+
+  margin-bottom: 0;
+}
+
+.table thead {
+
+  background:
+    linear-gradient(90deg,
+      #0f172a,
+      #1e3a8a);
+
+  color: white;
+}
+
+.table thead th {
+
+  border: none !important;
+
+  padding: 18px !important;
+
+  font-size: .95rem;
+
+  font-weight: 700;
+}
+
+.table tbody td {
+
+  padding: 18px !important;
+
+  border-color: #e2e8f0 !important;
+
+  vertical-align: middle;
+}
+
+.table tbody tr {
+
+  transition: .2s ease;
+}
+
+.table tbody tr:hover {
+
+  background:
+    rgba(37, 99, 235, .05);
+}
+
+/* =========================================
+   BADGES
+========================================= */
+
+.badge {
+
+  border-radius: 50px !important;
+
+  padding: 8px 14px !important;
+
+  font-size: .80rem !important;
+
+  font-weight: 700 !important;
+
+  letter-spacing: .3px;
+}
+
+/* =========================================
+   MODALES
+========================================= */
+
+.modal-content {
+
+  border: none !important;
+
+  border-radius: 28px !important;
+
+  overflow: hidden;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, .30);
+}
+
+.modal-header {
+
+  background:
+    linear-gradient(135deg,
+      #0f172a,
+      #1e3a8a);
+
+  color: white;
+
+  padding: 20px 24px;
+
+  border: none !important;
+}
+
+.modal-title {
+
+  font-weight: 800;
+}
+
+.modal-body {
+
+  background: #f8fafc;
+}
+
+.modal-footer {
+
+  border: none !important;
+
+  background: #ffffff;
+}
+
+/* =========================================
+   ALERTAS
+========================================= */
+
+.alert {
+
+  border: none !important;
+
+  border-radius: 16px !important;
+
+  font-weight: 500;
+}
+
+/* =========================================
+   SCROLLBAR
+========================================= */
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+
+  background: #020617;
+}
+
+::-webkit-scrollbar-thumb {
+
+  background:
+    linear-gradient(#2563eb,
+      #60a5fa);
+
+  border-radius: 20px;
+}
+
+/* =========================================
+   ANIMACIONES
+========================================= */
+
+.fade-in {
+
+  animation: fadeIn .4s ease;
+}
+
+@keyframes fadeIn {
+
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media(max-width:768px) {
+
+  .margen-superior-main {
+    padding: 15px;
+  }
+
+  .color-text-marca {
+    font-size: 18px;
+  }
+
+  .card {
+    border-radius: 18px !important;
+  }
+
+  .table thead th,
+  .table tbody td {
+    padding: 12px !important;
+  }
 }

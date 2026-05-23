@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
     Modal,
     Button,
@@ -7,7 +7,9 @@ import {
     Alert,
     Row,
     Col,
-    Image
+    Image,
+    Card,
+    InputGroup
 } from "react-bootstrap";
 
 const FormularioRegistroProducto = ({
@@ -30,7 +32,7 @@ const FormularioRegistroProducto = ({
     const [previewImage, setPreviewImage] = useState(null);
     const [formError, setFormError] = useState("");
 
-    const fileInputRef = React.useRef(null);
+    const fileInputRef = useRef(null);
 
     const categorias = [
         "Bebidas",
@@ -39,6 +41,10 @@ const FormularioRegistroProducto = ({
         "Lácteos",
         "Limpieza"
     ];
+
+    // =========================
+    // RESET
+    // =========================
 
     const resetForm = () => {
 
@@ -56,6 +62,10 @@ const FormularioRegistroProducto = ({
         setFormError("");
     };
 
+    // =========================
+    // INPUTS
+    // =========================
+
     const handleChange = (e) => {
 
         const { name, value } = e.target;
@@ -66,27 +76,29 @@ const FormularioRegistroProducto = ({
         }));
     };
 
+    // =========================
+    // IMAGEN
+    // =========================
+
     const handleImageChange = (e) => {
 
         const file = e.target.files[0];
 
         if (!file) return;
 
-        // Vista previa
-        const reader = new FileReader();
+        const preview = URL.createObjectURL(file);
 
-        reader.onload = (event) => {
-            setPreviewImage(event.target.result);
-        };
+        setPreviewImage(preview);
 
-        reader.readAsDataURL(file);
-
-        // Guardar archivo real
         setFormData((prev) => ({
             ...prev,
             archivo: file
         }));
     };
+
+    // =========================
+    // VALIDACIONES
+    // =========================
 
     const handleSubmit = (e) => {
 
@@ -95,16 +107,19 @@ const FormularioRegistroProducto = ({
         setFormError("");
 
         if (!formData.nombre.trim()) {
+
             setFormError("El nombre del producto es obligatorio");
             return;
         }
 
         if (!formData.precio || parseFloat(formData.precio) <= 0) {
+
             setFormError("El precio debe ser mayor a 0");
             return;
         }
 
         if (!formData.categoria) {
+
             setFormError("Debes seleccionar una categoría");
             return;
         }
@@ -112,7 +127,12 @@ const FormularioRegistroProducto = ({
         onGuardar(formData);
     };
 
+    // =========================
+    // CERRAR
+    // =========================
+
     const handleClose = () => {
+
         resetForm();
         onHide();
     };
@@ -127,33 +147,39 @@ const FormularioRegistroProducto = ({
             backdrop="static"
         >
 
-            <Modal.Header closeButton className="border-0 pb-2">
+            {/* HEADER */}
 
-                <div className="d-flex align-items-center gap-3 w-100">
+            <Modal.Header
+                closeButton
+                className="border-0 pb-0 px-4 pt-4"
+            >
+
+                <div className="d-flex align-items-center gap-3">
 
                     <div
-                        className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                        className="d-flex align-items-center justify-content-center shadow-sm"
                         style={{
-                            width: "60px",
-                            height: "60px",
+                            width: "70px",
+                            height: "70px",
+                            borderRadius: "22px",
                             background:
-                                "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                            color: "white",
-                            fontSize: "2rem"
+                                "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
+                            fontSize: "2rem",
+                            color: "white"
                         }}
                     >
                         📦
                     </div>
 
-                    <div className="flex-grow-1">
+                    <div>
 
-                        <Modal.Title className="mb-1">
-                            Nuevo Producto
-                        </Modal.Title>
+                        <h2 className="fw-bold mb-1">
+                            Registrar Producto
+                        </h2>
 
-                        <small className="text-muted">
-                            Ingresa los detalles del nuevo producto
-                        </small>
+                        <p className="text-muted mb-0">
+                            Completa la información del nuevo producto
+                        </p>
 
                     </div>
 
@@ -161,210 +187,288 @@ const FormularioRegistroProducto = ({
 
             </Modal.Header>
 
+            {/* FORM */}
+
             <Form onSubmit={handleSubmit}>
 
-                <Modal.Body className="pt-3">
+                <Modal.Body className="p-4">
 
                     {formError && (
-                        <Alert variant="danger" className="mb-4">
-                            {formError}
+
+                        <Alert
+                            variant="danger"
+                            className="rounded-4 border-0 shadow-sm"
+                        >
+                            ⚠️ {formError}
                         </Alert>
+
                     )}
 
-                    <Row>
+                    <Row className="g-4">
 
-                        {/* IMAGEN */}
+                        {/* PANEL IMAGEN */}
 
-                        <Col md={5} className="text-center mb-4 mb-md-0">
+                        <Col lg={4}>
 
-                            <div
-                                className="mx-auto rounded-4 overflow-hidden border shadow-sm"
-                                style={{
-                                    width: "220px",
-                                    height: "220px",
-                                    backgroundColor: "#f8f9fa"
-                                }}
-                            >
+                            <Card className="border-0 shadow-sm rounded-4 h-100">
 
-                                {previewImage ? (
+                                <Card.Body className="text-center p-4">
 
-                                    <Image
-                                        src={previewImage}
-                                        alt="Vista previa"
-                                        fluid
+                                    <div
+                                        className="mx-auto mb-4 border overflow-hidden shadow-sm"
                                         style={{
                                             width: "100%",
-                                            height: "100%",
-                                            objectFit: "cover"
+                                            maxWidth: "280px",
+                                            height: "280px",
+                                            borderRadius: "24px",
+                                            background: "#f8fafc"
                                         }}
-                                    />
+                                    >
 
-                                ) : (
+                                        {previewImage ? (
 
-                                    <div className="d-flex flex-column align-items-center justify-content-center h-100 text-muted">
+                                            <Image
+                                                src={previewImage}
+                                                alt="Vista previa"
+                                                fluid
+                                                style={{
+                                                    width: "100%",
+                                                    height: "100%",
+                                                    objectFit: "cover"
+                                                }}
+                                            />
 
-                                        <span
-                                            style={{
-                                                fontSize: "4.5rem",
-                                                opacity: 0.6
-                                            }}
-                                        >
-                                            📷
-                                        </span>
+                                        ) : (
 
-                                        <small className="mt-3">
-                                            Sin imagen
-                                        </small>
+                                            <div className="d-flex flex-column justify-content-center align-items-center h-100 text-muted">
+
+                                                <div
+                                                    style={{
+                                                        fontSize: "5rem",
+                                                        opacity: 0.5
+                                                    }}
+                                                >
+                                                    🖼️
+                                                </div>
+
+                                                <p className="mt-3 mb-0 fw-semibold">
+                                                    Vista previa
+                                                </p>
+
+                                            </div>
+
+                                        )}
 
                                     </div>
 
-                                )}
+                                    <Button
+                                        variant="outline-primary"
+                                        className="rounded-4 px-4 fw-semibold"
+                                        onClick={() =>
+                                            fileInputRef.current.click()
+                                        }
+                                    >
+                                        📸 Seleccionar Imagen
+                                    </Button>
 
-                            </div>
+                                    <Form.Control
+                                        type="file"
+                                        accept="image/*"
+                                        ref={fileInputRef}
+                                        onChange={handleImageChange}
+                                        style={{ display: "none" }}
+                                    />
 
-                            <Button
-                                variant="outline-primary"
-                                className="mt-3"
-                                onClick={() => fileInputRef.current.click()}
-                            >
-                                📸 Subir Imagen del Producto
-                            </Button>
+                                    <p className="text-muted small mt-3 mb-0">
+                                        Formatos permitidos: JPG, PNG, WEBP
+                                    </p>
 
-                            <Form.Control
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleImageChange}
-                                accept="image/*"
-                                style={{ display: "none" }}
-                            />
+                                </Card.Body>
+
+                            </Card>
 
                         </Col>
 
-                        {/* FORMULARIO */}
+                        {/* PANEL FORMULARIO */}
 
-                        <Col md={7}>
+                        <Col lg={8}>
 
-                            <Row>
+                            <Card className="border-0 shadow-sm rounded-4">
 
-                                <Col md={12}>
+                                <Card.Body className="p-4">
 
-                                    <Form.Group className="mb-4">
+                                    <Row className="g-4">
 
-                                        <Form.Label className="fw-semibold">
-                                            Nombre del Producto *
-                                        </Form.Label>
+                                        {/* NOMBRE */}
 
-                                        <Form.Control
-                                            type="text"
-                                            name="nombre"
-                                            value={formData.nombre}
-                                            onChange={handleChange}
-                                            placeholder="Ej: Café Molido Premium 500g"
-                                            required
-                                            size="lg"
-                                        />
+                                        <Col md={12}>
 
-                                    </Form.Group>
+                                            <Form.Group>
 
-                                </Col>
+                                                <Form.Label className="fw-semibold">
+                                                    Nombre del Producto *
+                                                </Form.Label>
 
-                                <Col md={6}>
+                                                <InputGroup>
 
-                                    <Form.Group className="mb-4">
+                                                    <InputGroup.Text>
+                                                        🛒
+                                                    </InputGroup.Text>
 
-                                        <Form.Label className="fw-semibold">
-                                            Precio (C$) *
-                                        </Form.Label>
+                                                    <Form.Control
+                                                        type="text"
+                                                        name="nombre"
+                                                        value={formData.nombre}
+                                                        onChange={handleChange}
+                                                        placeholder="Ej: Café Molido Premium 500g"
+                                                        className="rounded-end-4 shadow-none"
+                                                        size="lg"
+                                                        required
+                                                    />
 
-                                        <Form.Control
-                                            type="number"
-                                            name="precio"
-                                            value={formData.precio}
-                                            onChange={handleChange}
-                                            placeholder="150"
-                                            required
-                                            size="lg"
-                                        />
+                                                </InputGroup>
 
-                                    </Form.Group>
+                                            </Form.Group>
 
-                                </Col>
+                                        </Col>
 
-                                <Col md={6}>
+                                        {/* PRECIO */}
 
-                                    <Form.Group className="mb-4">
+                                        <Col md={6}>
 
-                                        <Form.Label className="fw-semibold">
-                                            Stock
-                                        </Form.Label>
+                                            <Form.Group>
 
-                                        <Form.Control
-                                            type="number"
-                                            name="stock"
-                                            value={formData.stock}
-                                            onChange={handleChange}
-                                            placeholder="50"
-                                            size="lg"
-                                        />
+                                                <Form.Label className="fw-semibold">
+                                                    Precio *
+                                                </Form.Label>
 
-                                    </Form.Group>
+                                                <InputGroup>
 
-                                </Col>
+                                                    <InputGroup.Text>
+                                                        C$
+                                                    </InputGroup.Text>
 
-                                <Col md={12}>
+                                                    <Form.Control
+                                                        type="number"
+                                                        name="precio"
+                                                        value={formData.precio}
+                                                        onChange={handleChange}
+                                                        placeholder="0.00"
+                                                        className="rounded-end-4 shadow-none"
+                                                        size="lg"
+                                                        min="0"
+                                                        step="0.01"
+                                                        required
+                                                    />
 
-                                    <Form.Group className="mb-4">
+                                                </InputGroup>
 
-                                        <Form.Label className="fw-semibold">
-                                            Categoría *
-                                        </Form.Label>
+                                            </Form.Group>
 
-                                        <Form.Select
-                                            name="categoria"
-                                            value={formData.categoria}
-                                            onChange={handleChange}
-                                            required
-                                            size="lg"
-                                        >
+                                        </Col>
 
-                                            <option value="">
-                                                Selecciona una categoría
-                                            </option>
+                                        {/* STOCK */}
 
-                                            {categorias.map((cat) => (
-                                                <option key={cat} value={cat}>
-                                                    {cat}
-                                                </option>
-                                            ))}
+                                        <Col md={6}>
 
-                                        </Form.Select>
+                                            <Form.Group>
 
-                                    </Form.Group>
+                                                <Form.Label className="fw-semibold">
+                                                    Stock
+                                                </Form.Label>
 
-                                </Col>
+                                                <InputGroup>
 
-                                <Col md={12}>
+                                                    <InputGroup.Text>
+                                                        📦
+                                                    </InputGroup.Text>
 
-                                    <Form.Group className="mb-4">
+                                                    <Form.Control
+                                                        type="number"
+                                                        name="stock"
+                                                        value={formData.stock}
+                                                        onChange={handleChange}
+                                                        placeholder="Cantidad disponible"
+                                                        className="rounded-end-4 shadow-none"
+                                                        size="lg"
+                                                        min="0"
+                                                    />
 
-                                        <Form.Label className="fw-semibold">
-                                            Descripción
-                                        </Form.Label>
+                                                </InputGroup>
 
-                                        <Form.Control
-                                            as="textarea"
-                                            name="descripcion"
-                                            value={formData.descripcion}
-                                            onChange={handleChange}
-                                            placeholder="Describe las características del producto..."
-                                            rows={4}
-                                        />
+                                            </Form.Group>
 
-                                    </Form.Group>
+                                        </Col>
 
-                                </Col>
+                                        {/* CATEGORÍA */}
 
-                            </Row>
+                                        <Col md={12}>
+
+                                            <Form.Group>
+
+                                                <Form.Label className="fw-semibold">
+                                                    Categoría *
+                                                </Form.Label>
+
+                                                <Form.Select
+                                                    name="categoria"
+                                                    value={formData.categoria}
+                                                    onChange={handleChange}
+                                                    className="rounded-4 shadow-none"
+                                                    size="lg"
+                                                    required
+                                                >
+
+                                                    <option value="">
+                                                        Selecciona una categoría
+                                                    </option>
+
+                                                    {categorias.map((cat) => (
+
+                                                        <option
+                                                            key={cat}
+                                                            value={cat}
+                                                        >
+                                                            {cat}
+                                                        </option>
+
+                                                    ))}
+
+                                                </Form.Select>
+
+                                            </Form.Group>
+
+                                        </Col>
+
+                                        {/* DESCRIPCIÓN */}
+
+                                        <Col md={12}>
+
+                                            <Form.Group>
+
+                                                <Form.Label className="fw-semibold">
+                                                    Descripción
+                                                </Form.Label>
+
+                                                <Form.Control
+                                                    as="textarea"
+                                                    rows={5}
+                                                    name="descripcion"
+                                                    value={formData.descripcion}
+                                                    onChange={handleChange}
+                                                    placeholder="Describe las características y detalles del producto..."
+                                                    className="rounded-4 shadow-none"
+                                                />
+
+                                            </Form.Group>
+
+                                        </Col>
+
+                                    </Row>
+
+                                </Card.Body>
+
+                            </Card>
 
                         </Col>
 
@@ -372,22 +476,24 @@ const FormularioRegistroProducto = ({
 
                 </Modal.Body>
 
-                <Modal.Footer className="border-0 pt-2">
+                {/* FOOTER */}
+
+                <Modal.Footer className="border-0 px-4 pb-4">
 
                     <Button
                         variant="light"
                         onClick={handleClose}
                         disabled={loading}
-                        className="px-4"
+                        className="rounded-4 px-4 fw-semibold"
                     >
                         Cancelar
                     </Button>
 
                     <Button
-                        variant="success"
+                        variant="primary"
                         type="submit"
                         disabled={loading}
-                        className="px-5 shadow"
+                        className="rounded-4 px-5 fw-semibold shadow-sm"
                     >
 
                         {loading ? (
@@ -397,7 +503,7 @@ const FormularioRegistroProducto = ({
                                     size="sm"
                                     className="me-2"
                                 />
-                                Guardando Producto...
+                                Guardando...
                             </>
                         ) : (
                             "Guardar Producto"

@@ -1,5 +1,5 @@
 import React from "react";
-import { Row, Col, Card, Button } from "react-bootstrap";
+import { Row, Col, Card, Button, Badge } from "react-bootstrap";
 
 const TarjetaCategoria = ({
     categorias,
@@ -14,57 +14,107 @@ const TarjetaCategoria = ({
             {categorias.map((categoria) => (
 
                 <Col
+                    key={categoria.id}
                     xs={12}
-                    sm={6}
-                    key={categoria.id_categoria}
+                    md={6}
+                    lg={4}
                 >
 
-                    <Card className="border-0 shadow-sm rounded-4 h-100">
+                    <Card className="border-0 shadow-lg rounded-4 h-100 categoria-card overflow-hidden">
 
-                        <Card.Body className="p-4">
+                        {/* IMAGEN */}
+                        <div
+                            className="position-relative"
+                            style={{
+                                height: "220px",
+                                overflow: "hidden"
+                            }}
+                        >
 
-                            <div className="d-flex justify-content-between align-items-start mb-3">
+                            {categoria.imagen ? (
 
-                                <div>
+                                <Card.Img
+                                    variant="top"
+                                    src={categoria.imagen}
+                                    style={{
+                                        height: "100%",
+                                        width: "100%",
+                                        objectFit: "cover"
+                                    }}
+                                />
 
-                                    <h5 className="fw-bold text-dark mb-1">
-                                        {categoria.nombre_categoria}
-                                    </h5>
-
-                                    <small className="text-muted">
-                                        ID: {categoria.id_categoria}
-                                    </small>
-
-                                </div>
+                            ) : (
 
                                 <div
-                                    className="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center"
+                                    className="d-flex justify-content-center align-items-center h-100"
                                     style={{
-                                        width: "50px",
-                                        height: "50px"
+                                        background:
+                                            "linear-gradient(135deg, #1e293b, #334155)"
                                     }}
                                 >
 
-                                    <i className="bi bi-tags-fill text-primary"></i>
+                                    <span
+                                        style={{
+                                            fontSize: "5rem"
+                                        }}
+                                    >
+                                        📂
+                                    </span>
 
                                 </div>
 
+                            )}
+
+                            {/* BADGE */}
+                            <Badge
+                                bg="primary"
+                                className="position-absolute top-0 end-0 m-3 px-3 py-2 rounded-pill shadow"
+                            >
+                                ID #{categoria.id}
+                            </Badge>
+
+                        </div>
+
+                        {/* CONTENIDO */}
+                        <Card.Body className="p-4 d-flex flex-column">
+
+                            <div className="mb-3">
+
+                                <h4 className="fw-bold text-dark mb-2">
+                                    {categoria.nombre}
+                                </h4>
+
+                                <p
+                                    className="text-muted mb-0"
+                                    style={{
+                                        minHeight: "70px",
+                                        lineHeight: "1.6"
+                                    }}
+                                >
+                                    {categoria.descripcion ||
+                                        "Sin descripción disponible"}
+                                </p>
+
                             </div>
 
-                            <p
-                                className="text-muted mb-4"
-                                style={{
-                                    minHeight: "60px"
-                                }}
-                            >
-                                {categoria.descripcion_categoria}
-                            </p>
+                            {/* ESTADO */}
+                            <div className="mb-4">
 
-                            <div className="d-flex gap-2">
+                                <Badge
+                                    bg="success"
+                                    className="px-3 py-2 rounded-pill"
+                                >
+                                    Activa
+                                </Badge>
+
+                            </div>
+
+                            {/* BOTONES */}
+                            <div className="d-flex gap-2 mt-auto">
 
                                 <Button
-                                    variant="outline-warning"
-                                    className="w-100 rounded-3"
+                                    variant="warning"
+                                    className="w-100 rounded-3 fw-semibold shadow-sm"
                                     onClick={() =>
                                         abrirModalEdicion(categoria)
                                     }
@@ -76,14 +126,14 @@ const TarjetaCategoria = ({
                                 </Button>
 
                                 <Button
-                                    variant="outline-danger"
-                                    className="w-100 rounded-3"
+                                    variant="danger"
+                                    className="w-100 rounded-3 fw-semibold shadow-sm"
                                     onClick={() =>
                                         abrirModalEliminacion(categoria)
                                     }
                                 >
 
-                                    <i className="bi bi-trash3-fill me-2"></i>
+                                    <i className="bi bi-trash-fill me-2"></i>
                                     Eliminar
 
                                 </Button>

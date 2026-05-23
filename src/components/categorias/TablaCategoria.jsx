@@ -114,7 +114,7 @@ const TablaCategorias = ({
                                 categorias.map((categoria) => (
 
                                     <tr
-                                        key={categoria.id_categoria}
+                                        key={categoria.id}
                                         style={{
                                             transition: "0.2s ease"
                                         }}
@@ -122,7 +122,7 @@ const TablaCategorias = ({
 
                                         {/* ID */}
                                         <td className="fw-semibold px-3">
-                                            #{categoria.id_categoria}
+                                            #{categoria.id}
                                         </td>
 
                                         {/* NOMBRE */}
@@ -147,7 +147,7 @@ const TablaCategorias = ({
                                                 <div>
 
                                                     <h6 className="fw-bold mb-0">
-                                                        {categoria.nombre_categoria}
+                                                        {categoria.nombre}
                                                     </h6>
 
                                                     <small className="text-muted">
@@ -163,9 +163,9 @@ const TablaCategorias = ({
                                         {/* DESCRIPCIÓN */}
                                         <td className="text-muted">
 
-                                            {categoria.descripcion_categoria?.length > 80
-                                                ? categoria.descripcion_categoria.substring(0, 80) + "..."
-                                                : categoria.descripcion_categoria}
+                                            {categoria.descripcion?.length > 80
+                                                ? categoria.descripcion.substring(0, 80) + "..."
+                                                : categoria.descripcion}
 
                                         </td>
 

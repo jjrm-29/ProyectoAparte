@@ -5,7 +5,10 @@ import {
     Col,
     Button,
     Form,
-    Spinner
+    Spinner,
+    InputGroup,
+    Card,
+    Badge
 } from "react-bootstrap";
 
 import { supabase } from "../database/supabaseconfig";
@@ -24,6 +27,8 @@ const Productos = () => {
 
     const [productos, setProductos] = useState([]);
     const [productosFiltrados, setProductosFiltrados] = useState([]);
+
+    const [categorias, setCategorias] = useState([]);
 
     const [loading, setLoading] = useState(true);
 
@@ -82,6 +87,20 @@ const Productos = () => {
             setProductos(productosMapeados);
             setProductosFiltrados(productosMapeados);
 
+            // =========================
+            // CATEGORÍAS DINÁMICAS
+            // =========================
+
+            const categoriasUnicas = [
+                ...new Set(
+                    productosMapeados
+                        .map((p) => p.categoria)
+                        .filter(Boolean)
+                )
+            ];
+
+            setCategorias(categoriasUnicas);
+
         } catch (err) {
 
             console.error("Error al cargar productos:", err);
@@ -105,7 +124,7 @@ const Productos = () => {
 
     useEffect(() => {
 
-        let filtrados = productos.filter((producto) => {
+        const filtrados = productos.filter((producto) => {
 
             const coincideBusqueda =
 
@@ -124,6 +143,7 @@ const Productos = () => {
         });
 
         setProductosFiltrados(filtrados);
+        setPaginaActual(1);
 
     }, [busqueda, categoriaFiltro, productos]);
 
@@ -135,211 +155,6 @@ const Productos = () => {
         (paginaActual - 1) * registrosPorPagina,
         paginaActual * registrosPorPagina
     );
-
-    // =========================
-    // MODALES
-    // =========================
-
-    const handleNuevoProducto = () => {
-        setShowRegistroModal(true);
-    };
-
-    const handleEditarProducto = (producto) => {
-        setProductoEditar(producto);
-        setShowEditModal(true);
-    };
-
-    const handleEliminarProducto = (producto) => {
-        setProductoEliminar(producto);
-        setShowDeleteModal(true);
-    };
-
-    // =========================
-    // REGISTRAR PRODUCTO
-    // =========================
-
-    const handleGuardarNuevo = async (nuevoProducto) => {
-
-        try {
-
-            setModalLoading(true);
-
-            let urlImagen = "";
-
-            if (nuevoProducto.archivo) {
-
-                const nombreArchivo =
-                    `${Date.now()}_${nuevoProducto.archivo.name}`;
-
-                const { error: uploadError } = await supabase.storage
-                    .from("imagenes_productos")
-                    .upload(nombreArchivo, nuevoProducto.archivo);
-
-                if (uploadError) throw uploadError;
-
-                const { data } = supabase.storage
-                    .from("imagenes_productos")
-                    .getPublicUrl(nombreArchivo);
-
-                urlImagen = data.publicUrl;
-            }
-
-            const { error } = await supabase
-                .from("productos")
-                .insert([
-                    {
-                        nombre: nuevoProducto.nombre,
-                        precio: parseFloat(nuevoProducto.precio),
-                        stock: parseInt(nuevoProducto.stock),
-                        categoria: nuevoProducto.categoria,
-                        descripcion: nuevoProducto.descripcion,
-                        imagen: urlImagen,
-                    },
-                ]);
-
-            if (error) throw error;
-
-            setToast({
-                mostrar: true,
-                mensaje: "Producto registrado correctamente",
-                tipo: "exito",
-            });
-
-            setShowRegistroModal(false);
-
-            await cargarProductos();
-
-        } catch (err) {
-
-            console.error("Error al registrar:", err);
-
-            setToast({
-                mostrar: true,
-                mensaje: "Error al registrar producto",
-                tipo: "error",
-            });
-
-        } finally {
-
-            setModalLoading(false);
-
-        }
-    };
-
-    // =========================
-    // EDITAR PRODUCTO
-    // =========================
-
-    const handleGuardarEdicion = async (datosEditados) => {
-
-        try {
-
-            setModalLoading(true);
-
-            let urlImagen = datosEditados.imagen;
-
-            if (datosEditados.archivo) {
-
-                const nombreArchivo =
-                    `${Date.now()}_${datosEditados.archivo.name}`;
-
-                const { error: uploadError } = await supabase.storage
-                    .from("imagenes_productos")
-                    .upload(nombreArchivo, datosEditados.archivo);
-
-                if (uploadError) throw uploadError;
-
-                const { data } = supabase.storage
-                    .from("imagenes_productos")
-                    .getPublicUrl(nombreArchivo);
-
-                urlImagen = data.publicUrl;
-            }
-
-            const { error } = await supabase
-                .from("productos")
-                .update({
-                    nombre: datosEditados.nombre,
-                    precio: parseFloat(datosEditados.precio),
-                    stock: parseInt(datosEditados.stock),
-                    categoria: datosEditados.categoria,
-                    descripcion: datosEditados.descripcion,
-                    imagen: urlImagen,
-                })
-                .eq("id_producto", productoEditar.id_producto);
-
-            if (error) throw error;
-
-            setToast({
-                mostrar: true,
-                mensaje: "Producto actualizado correctamente",
-                tipo: "exito",
-            });
-
-            setShowEditModal(false);
-
-            await cargarProductos();
-
-        } catch (err) {
-
-            console.error("Error al actualizar:", err);
-
-            setToast({
-                mostrar: true,
-                mensaje: "Error al actualizar producto",
-                tipo: "error",
-            });
-
-        } finally {
-
-            setModalLoading(false);
-
-        }
-    };
-
-    // =========================
-    // ELIMINAR PRODUCTO
-    // =========================
-
-    const handleConfirmarEliminacion = async () => {
-
-        try {
-
-            setModalLoading(true);
-
-            const { error } = await supabase
-                .from("productos")
-                .delete()
-                .eq("id_producto", productoEliminar.id_producto);
-
-            if (error) throw error;
-
-            setToast({
-                mostrar: true,
-                mensaje: "Producto eliminado correctamente",
-                tipo: "exito",
-            });
-
-            setShowDeleteModal(false);
-
-            await cargarProductos();
-
-        } catch (err) {
-
-            console.error("Error al eliminar:", err);
-
-            setToast({
-                mostrar: true,
-                mensaje: "Error al eliminar producto",
-                tipo: "error",
-            });
-
-        } finally {
-
-            setModalLoading(false);
-
-        }
-    };
 
     return (
 
@@ -359,6 +174,14 @@ const Productos = () => {
 
                     <Col lg={8}>
 
+                        <Badge
+                            bg="light"
+                            text="dark"
+                            className="mb-3 px-3 py-2 rounded-pill fw-semibold"
+                        >
+                            Inventario Digital
+                        </Badge>
+
                         <h1 className="display-5 fw-bold mb-3">
                             Gestión de Productos
                         </h1>
@@ -369,8 +192,8 @@ const Productos = () => {
                                 opacity: 0.9
                             }}
                         >
-                            Administra el inventario de tu pulpería de manera
-                            rápida y profesional.
+                            Administra el inventario de tu pulpería
+                            de manera rápida y profesional.
                         </p>
 
                     </Col>
@@ -384,7 +207,7 @@ const Productos = () => {
                             variant="light"
                             size="lg"
                             className="fw-bold rounded-4 px-4 shadow-sm"
-                            onClick={handleNuevoProducto}
+                            onClick={() => setShowRegistroModal(true)}
                         >
                             ➕ Nuevo Producto
                         </Button>
@@ -397,79 +220,87 @@ const Productos = () => {
 
             {/* FILTROS */}
 
-            <div className="bg-white rounded-4 shadow-sm border p-4 mb-5">
+            <Card className="border-0 shadow-sm rounded-4 mb-5">
 
-                <Row className="g-3 align-items-center">
+                <Card.Body className="p-4">
 
-                    <Col lg={7}>
+                    <Row className="g-3 align-items-center">
 
-                        <Form.Control
-                            type="text"
-                            placeholder="Buscar producto por nombre o descripción..."
-                            value={busqueda}
-                            onChange={(e) => setBusqueda(e.target.value)}
-                            size="lg"
-                            className="rounded-4 border-0 shadow-sm"
-                        />
+                        <Col lg={7}>
 
-                    </Col>
+                            <InputGroup size="lg">
 
-                    <Col lg={3}>
+                                <InputGroup.Text className="bg-white border-end-0 rounded-start-4">
+                                    🔍
+                                </InputGroup.Text>
 
-                        <Form.Select
-                            value={categoriaFiltro}
-                            onChange={(e) =>
-                                setCategoriaFiltro(e.target.value)
-                            }
-                            size="lg"
-                            className="rounded-4 border-0 shadow-sm"
-                        >
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Buscar producto..."
+                                    value={busqueda}
+                                    onChange={(e) =>
+                                        setBusqueda(e.target.value)
+                                    }
+                                    className="border-start-0 shadow-none rounded-end-4"
+                                />
 
-                            <option value="Todas">
-                                Todas las categorías
-                            </option>
+                            </InputGroup>
 
-                            <option value="Alimentos">
-                                Alimentos
-                            </option>
+                        </Col>
 
-                            <option value="Bebidas">
-                                Bebidas
-                            </option>
+                        <Col lg={3}>
 
-                            <option value="Despensa">
-                                Despensa
-                            </option>
+                            <Form.Select
+                                value={categoriaFiltro}
+                                onChange={(e) =>
+                                    setCategoriaFiltro(e.target.value)
+                                }
+                                size="lg"
+                                className="rounded-4 shadow-none"
+                            >
 
-                            <option value="Lácteos">
-                                Lácteos
-                            </option>
+                                <option value="Todas">
+                                    Todas las categorías
+                                </option>
 
-                            <option value="Limpieza">
-                                Limpieza
-                            </option>
+                                {categorias.map((categoria, index) => (
 
-                        </Form.Select>
+                                    <option
+                                        key={index}
+                                        value={categoria}
+                                    >
+                                        {categoria}
+                                    </option>
 
-                    </Col>
+                                ))}
 
-                    <Col lg={2}>
+                            </Form.Select>
 
-                        <Button
-                            variant="primary"
-                            size="lg"
-                            className="w-100 rounded-4 fw-semibold shadow-sm"
-                        >
-                            Buscar
-                        </Button>
+                        </Col>
 
-                    </Col>
+                        <Col lg={2}>
 
-                </Row>
+                            <Button
+                                variant="primary"
+                                size="lg"
+                                className="w-100 rounded-4 fw-semibold shadow-sm"
+                                onClick={() => {
+                                    setBusqueda("");
+                                    setCategoriaFiltro("Todas");
+                                }}
+                            >
+                                Limpiar
+                            </Button>
 
-            </div>
+                        </Col>
 
-            {/* TABLA */}
+                    </Row>
+
+                </Card.Body>
+
+            </Card>
+
+            {/* LOADING */}
 
             {loading ? (
 
@@ -478,7 +309,6 @@ const Productos = () => {
                     <Spinner
                         animation="border"
                         variant="primary"
-                        size="lg"
                     />
 
                     <p className="mt-3 text-muted">
@@ -501,7 +331,7 @@ const Productos = () => {
                                 </h4>
 
                                 <p className="text-muted mb-0">
-                                    Lista completa de productos registrados
+                                    {productosFiltrados.length} productos encontrados
                                 </p>
 
                             </div>
@@ -510,8 +340,14 @@ const Productos = () => {
 
                                 <TablaProductos
                                     productos={productosPaginados}
-                                    abrirModalEdicion={handleEditarProducto}
-                                    abrirModalEliminacion={handleEliminarProducto}
+                                    abrirModalEdicion={(producto) => {
+                                        setProductoEditar(producto);
+                                        setShowEditModal(true);
+                                    }}
+                                    abrirModalEliminacion={(producto) => {
+                                        setProductoEliminar(producto);
+                                        setShowDeleteModal(true);
+                                    }}
                                 />
 
                             </div>
@@ -526,30 +362,15 @@ const Productos = () => {
 
                         <TarjetasProductos
                             productos={productosPaginados}
-                            categorias={[
-                                {
-                                    id_categoria: "Bebidas",
-                                    nombre_categoria: "Bebidas"
-                                },
-                                {
-                                    id_categoria: "Alimentos",
-                                    nombre_categoria: "Alimentos"
-                                },
-                                {
-                                    id_categoria: "Despensa",
-                                    nombre_categoria: "Despensa"
-                                },
-                                {
-                                    id_categoria: "Lácteos",
-                                    nombre_categoria: "Lácteos"
-                                },
-                                {
-                                    id_categoria: "Limpieza",
-                                    nombre_categoria: "Limpieza"
-                                },
-                            ]}
-                            abrirModalEdicion={handleEditarProducto}
-                            abrirModalEliminacion={handleEliminarProducto}
+                            categorias={categorias}
+                            abrirModalEdicion={(producto) => {
+                                setProductoEditar(producto);
+                                setShowEditModal(true);
+                            }}
+                            abrirModalEliminacion={(producto) => {
+                                setProductoEliminar(producto);
+                                setShowDeleteModal(true);
+                            }}
                         />
 
                     </div>
@@ -575,29 +396,23 @@ const Productos = () => {
             <FormularioRegistroProducto
                 show={showRegistroModal}
                 onHide={() => setShowRegistroModal(false)}
-                onGuardar={handleGuardarNuevo}
+                onGuardar={() => {}}
                 loading={modalLoading}
             />
 
             <ModalEdicionProducto
                 show={showEditModal}
-                onHide={() => {
-                    setShowEditModal(false);
-                    setProductoEditar(null);
-                }}
+                onHide={() => setShowEditModal(false)}
                 producto={productoEditar}
-                onGuardar={handleGuardarEdicion}
+                onGuardar={() => {}}
                 loading={modalLoading}
             />
 
             <ModalEliminacion
                 show={showDeleteModal}
-                onHide={() => {
-                    setShowDeleteModal(false);
-                    setProductoEliminar(null);
-                }}
+                onHide={() => setShowDeleteModal(false)}
                 item={productoEliminar}
-                onConfirmar={handleConfirmarEliminacion}
+                onConfirmar={() => {}}
                 loading={modalLoading}
                 tipo="producto"
             />
@@ -607,7 +422,10 @@ const Productos = () => {
                 mensaje={toast.mensaje}
                 tipo={toast.tipo}
                 onCerrar={() =>
-                    setToast({ ...toast, mostrar: false })
+                    setToast({
+                        ...toast,
+                        mostrar: false
+                    })
                 }
             />
 

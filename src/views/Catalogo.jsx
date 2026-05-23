@@ -21,6 +21,7 @@ const Catalogo = () => {
     const [searchParams] = useSearchParams();
 
     const [productos, setProductos] = useState([]);
+    const [categorias, setCategorias] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const [busqueda, setBusqueda] = useState("");
@@ -35,15 +36,13 @@ const Catalogo = () => {
         const categoriaDesdeURL = searchParams.get("categoria");
 
         if (categoriaDesdeURL) {
-
             setCategoriaFiltro(categoriaDesdeURL);
-
         }
 
     }, [searchParams]);
 
     // =========================
-    // CARGAR PRODUCTOS DESDE SUPABASE
+    // CARGAR PRODUCTOS
     // =========================
 
     useEffect(() => {
@@ -58,14 +57,24 @@ const Catalogo = () => {
 
             setLoading(true);
 
-            const { data, error } = await supabase
+            // PRODUCTOS
+            const { data: productosData, error: productosError } = await supabase
                 .from("productos")
                 .select("*")
                 .order("id_producto", { ascending: false });
 
-            if (error) throw error;
+            if (productosError) throw productosError;
 
-            setProductos(data || []);
+            // CATEGORÍAS
+            const { data: categoriasData, error: categoriasError } = await supabase
+                .from("categorias")
+                .select("*")
+                .order("nombre", { ascending: true });
+
+            if (categoriasError) throw categoriasError;
+
+            setProductos(productosData || []);
+            setCategorias(categoriasData || []);
 
         } catch (error) {
 
@@ -105,12 +114,12 @@ const Catalogo = () => {
 
             {/* HERO */}
 
-            <Card className="border-0 shadow-sm rounded-4 overflow-hidden mb-5">
+            <Card className="border-0 shadow-lg rounded-4 overflow-hidden mb-5">
 
                 <div
                     style={{
                         background:
-                            "linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #3b82f6 100%)"
+                            "linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%)"
                     }}
                     className="text-white p-5"
                 >
@@ -145,7 +154,7 @@ const Catalogo = () => {
                                 }}
                             >
                                 Descubre productos organizados por categorías
-                                con una experiencia moderna y rápida.
+                                con una experiencia moderna y profesional.
                             </p>
 
                         </Col>
@@ -216,25 +225,16 @@ const Catalogo = () => {
                                     Todas las categorías
                                 </option>
 
-                                <option value="Alimentos">
-                                    Alimentos
-                                </option>
+                                {categorias.map((categoria) => (
 
-                                <option value="Despensa">
-                                    Despensa
-                                </option>
+                                    <option
+                                        key={categoria.id}
+                                        value={categoria.nombre}
+                                    >
+                                        {categoria.nombre}
+                                    </option>
 
-                                <option value="Lácteos">
-                                    Lácteos
-                                </option>
-
-                                <option value="Limpieza">
-                                    Limpieza
-                                </option>
-
-                                <option value="Bebidas">
-                                    Bebidas
-                                </option>
+                                ))}
 
                             </Form.Select>
 
@@ -305,7 +305,7 @@ const Catalogo = () => {
                                     </p>
 
                                     <h3 className="fw-bold mb-0">
-                                        5
+                                        {categorias.length}
                                     </h3>
 
                                 </div>

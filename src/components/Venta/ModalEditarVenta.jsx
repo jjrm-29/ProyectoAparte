@@ -6,33 +6,59 @@ import {
   Row,
   Col,
   Image,
-  Badge
+  Badge,
+  Alert,
+  Spinner,
+  Card
 } from "react-bootstrap";
 
 import { supabase } from "../../database/supabaseconfig";
 
-const ModalEditarVenta = ({ show, onHide, venta, onSuccess }) => {
+const ModalEditarVenta = ({
+  show,
+  onHide,
+  venta,
+  onSuccess
+}) => {
 
   const [form, setForm] = useState({});
   const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [errorForm, setErrorForm] = useState("");
 
   useEffect(() => {
 
-    setForm(venta || {});
+    if (show && venta) {
 
-    cargarProductos();
+      setForm({
+        ...venta,
+        productos: venta.productos
+      });
 
-  }, [venta]);
+      cargarProductos();
+    }
+
+  }, [show, venta]);
 
   const cargarProductos = async () => {
 
-    const { data, error } = await supabase
-      .from("productos")
-      .select("*")
-      .order("nombre", { ascending: true });
+    try {
 
-    if (!error) {
+      const { data, error } = await supabase
+        .from("productos")
+        .select("*")
+        .order("nombre", { ascending: true });
+
+      if (error) {
+        console.error(error);
+        return;
+      }
+
       setProductos(data || []);
+
+    } catch (error) {
+
+      console.error(error);
     }
   };
 
@@ -46,12 +72,14 @@ const ModalEditarVenta = ({ show, onHide, venta, onSuccess }) => {
 
     const precio = parseFloat(producto?.precio || 0);
 
+    const cantidad = form.cantidad || 1;
+
     setForm({
       ...form,
       id_producto: id,
       productos: producto,
-      cantidad: form.cantidad || 1,
-      total: (form.cantidad || 1) * precio
+      precio_unitario: precio,
+      subtotal: cantidad * precio
     });
   };
 
@@ -59,28 +87,61 @@ const ModalEditarVenta = ({ show, onHide, venta, onSuccess }) => {
 
     const cantidad = parseInt(e.target.value) || 1;
 
-    const precio = form.productos?.precio || 0;
+    const precio = form.precio_unitario || 0;
 
     setForm({
       ...form,
       cantidad,
-      total: cantidad * precio
+      subtotal: cantidad * precio
     });
   };
 
   const actualizar = async () => {
 
-    await supabase
-      .from("Hecho_Ventas")
-      .update({
-        id_producto: form.id_producto,
-        cantidad: form.cantidad,
-        total: form.total
-      })
-      .eq("id_venta", venta.id_venta);
+    try {
 
-    onHide();
-    onSuccess();
+      setLoading(true);
+      setErrorForm("");
+
+      const { error } = await supabase
+        .from("detalle_venta")
+        .update({
+          id_producto: form.id_producto,
+          cantidad: form.cantidad,
+          precio_unitario: form.precio_unitario,
+          subtotal: form.subtotal
+        })
+        .eq("id_detalle", venta.id_detalle);
+
+      if (error) {
+
+        console.error(error);
+
+        setErrorForm(
+          "Error al actualizar la venta"
+        );
+
+        return;
+      }
+
+      onHide();
+
+      if (onSuccess) {
+        onSuccess();
+      }
+
+    } catch (error) {
+
+      console.error(error);
+
+      setErrorForm(
+        "Ocurrió un error inesperado"
+      );
+
+    } finally {
+
+      setLoading(false);
+    }
   };
 
   if (!venta) return null;
@@ -96,7 +157,11 @@ const ModalEditarVenta = ({ show, onHide, venta, onSuccess }) => {
 
       <Modal.Header
         closeButton
-        className="border-0 pb-0"
+        className="border-0 text-white"
+        style={{
+          background:
+            "linear-gradient(135deg,#111827,#2563eb)"
+        }}
       >
 
         <Modal.Title className="fw-bold fs-3">
@@ -105,7 +170,15 @@ const ModalEditarVenta = ({ show, onHide, venta, onSuccess }) => {
 
       </Modal.Header>
 
-      <Modal.Body className="pt-2">
+      <Modal.Body className="p-4 bg-light">
+
+        {errorForm && (
+
+          <Alert variant="danger">
+            {errorForm}
+          </Alert>
+
+        )}
 
         <Row className="g-4 align-items-center">
 
@@ -113,39 +186,51 @@ const ModalEditarVenta = ({ show, onHide, venta, onSuccess }) => {
 
           <Col md={5}>
 
-            <div
-              className="border rounded-4 overflow-hidden shadow-sm bg-light mx-auto"
-              style={{
-                width: "240px",
-                height: "240px"
-              }}
-            >
+            <Card className="border-0 shadow-lg rounded-5 overflow-hidden">
 
-              {form.productos?.imagen ? (
+              <div
+                className="d-flex justify-content-center align-items-center"
+                style={{
+                  height: "320px",
+                  background:
+                    "linear-gradient(135deg,#eff6ff,#dbeafe)"
+                }}
+              >
 
-                <Image
-                  src={form.productos.imagen}
-                  fluid
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover"
-                  }}
-                />
+                {form.productos?.imagen ? (
 
-              ) : (
+                  <Image
+                    src={form.productos.imagen}
+                    fluid
+                    style={{
+                      width: "240px",
+                      height: "240px",
+                      objectFit: "cover",
+                      borderRadius: "25px",
+                      boxShadow:
+                        "0 10px 25px rgba(0,0,0,0.15)"
+                    }}
+                  />
 
-                <div className="d-flex align-items-center justify-content-center h-100">
+                ) : (
 
-                  <span style={{ fontSize: "5rem" }}>
+                  <div
+                    className="bg-white shadow-sm d-flex justify-content-center align-items-center"
+                    style={{
+                      width: "240px",
+                      height: "240px",
+                      borderRadius: "25px",
+                      fontSize: "5rem"
+                    }}
+                  >
                     📦
-                  </span>
+                  </div>
 
-                </div>
+                )}
 
-              )}
+              </div>
 
-            </div>
+            </Card>
 
           </Col>
 
@@ -153,100 +238,126 @@ const ModalEditarVenta = ({ show, onHide, venta, onSuccess }) => {
 
           <Col md={7}>
 
-            <div className="bg-light rounded-4 p-4 shadow-sm">
+            <Card className="border-0 shadow rounded-5">
 
-              <Form>
+              <Card.Body className="p-4">
 
-                {/* PRODUCTO */}
+                <Form>
 
-                <Form.Group className="mb-4">
+                  {/* PRODUCTO */}
 
-                  <Form.Label className="fw-semibold">
-                    Producto
-                  </Form.Label>
+                  <Form.Group className="mb-4">
 
-                  <Form.Select
-                    value={form.id_producto || ""}
-                    onChange={handleProducto}
-                    size="lg"
-                    className="rounded-3"
-                  >
+                    <Form.Label className="fw-bold">
+                      Producto
+                    </Form.Label>
 
-                    <option value="">
-                      Selecciona un producto
-                    </option>
+                    <Form.Select
+                      value={form.id_producto || ""}
+                      onChange={handleProducto}
+                      size="lg"
+                      className="rounded-4"
+                    >
 
-                    {productos.map((p) => (
-
-                      <option
-                        key={p.id_producto}
-                        value={p.id_producto}
-                      >
-                        {p.nombre}
+                      <option value="">
+                        Selecciona un producto
                       </option>
 
-                    ))}
+                      {productos.map((p) => (
 
-                  </Form.Select>
+                        <option
+                          key={p.id_producto}
+                          value={p.id_producto}
+                        >
+                          {p.nombre}
+                        </option>
 
-                </Form.Group>
+                      ))}
 
-                {/* CATEGORIA */}
+                    </Form.Select>
 
-                <div className="mb-4">
+                  </Form.Group>
 
-                  <Form.Label className="fw-semibold d-block">
-                    Categoría
-                  </Form.Label>
+                  {/* CATEGORÍA */}
 
-                  <Badge
-                    bg="primary"
-                    className="px-3 py-2 fs-6"
-                  >
-                    {form.productos?.categoria || "Sin categoría"}
-                  </Badge>
+                  <div className="mb-4">
 
-                </div>
+                    <Form.Label className="fw-bold d-block">
+                      Categoría
+                    </Form.Label>
 
-                {/* CANTIDAD */}
+                    <Badge
+                      bg="primary"
+                      className="px-4 py-2 rounded-pill fs-6"
+                    >
+                      {form.productos?.categoria ||
+                        "Sin categoría"}
+                    </Badge>
 
-                <Form.Group className="mb-4">
+                  </div>
 
-                  <Form.Label className="fw-semibold">
-                    Cantidad
-                  </Form.Label>
+                  {/* CANTIDAD */}
 
-                  <Form.Control
-                    type="number"
-                    min="1"
-                    value={form.cantidad || ""}
-                    onChange={handleCantidad}
-                    size="lg"
-                    className="rounded-3"
-                  />
+                  <Form.Group className="mb-4">
 
-                </Form.Group>
+                    <Form.Label className="fw-bold">
+                      Cantidad
+                    </Form.Label>
 
-                {/* TOTAL */}
+                    <Form.Control
+                      type="number"
+                      min="1"
+                      value={form.cantidad || ""}
+                      onChange={handleCantidad}
+                      size="lg"
+                      className="rounded-4"
+                    />
 
-                <Form.Group>
+                  </Form.Group>
 
-                  <Form.Label className="fw-semibold">
-                    Total
-                  </Form.Label>
+                  {/* PRECIO */}
 
-                  <Form.Control
-                    value={`C$ ${parseFloat(form.total || 0).toFixed(2)}`}
-                    disabled
-                    size="lg"
-                    className="fw-bold text-success rounded-3"
-                  />
+                  <Form.Group className="mb-4">
 
-                </Form.Group>
+                    <Form.Label className="fw-bold">
+                      Precio Unitario
+                    </Form.Label>
 
-              </Form>
+                    <Form.Control
+                      value={`C$ ${parseFloat(
+                        form.precio_unitario || 0
+                      ).toFixed(2)}`}
+                      disabled
+                      size="lg"
+                      className="rounded-4 fw-bold text-primary"
+                    />
 
-            </div>
+                  </Form.Group>
+
+                  {/* SUBTOTAL */}
+
+                  <Form.Group>
+
+                    <Form.Label className="fw-bold">
+                      Subtotal
+                    </Form.Label>
+
+                    <Form.Control
+                      value={`C$ ${parseFloat(
+                        form.subtotal || 0
+                      ).toFixed(2)}`}
+                      disabled
+                      size="lg"
+                      className="rounded-4 fw-bold text-success"
+                    />
+
+                  </Form.Group>
+
+                </Form>
+
+              </Card.Body>
+
+            </Card>
 
           </Col>
 
@@ -254,12 +365,12 @@ const ModalEditarVenta = ({ show, onHide, venta, onSuccess }) => {
 
       </Modal.Body>
 
-      <Modal.Footer className="border-0 pt-0">
+      <Modal.Footer className="border-0 bg-light">
 
         <Button
-          variant="light"
+          variant="secondary"
           onClick={onHide}
-          className="px-4 py-2 rounded-3"
+          className="rounded-4 px-4"
         >
           Cancelar
         </Button>
@@ -267,9 +378,27 @@ const ModalEditarVenta = ({ show, onHide, venta, onSuccess }) => {
         <Button
           variant="success"
           onClick={actualizar}
-          className="px-4 py-2 rounded-3 shadow-sm"
+          disabled={loading}
+          className="rounded-4 px-4 fw-bold"
         >
-          💾 Guardar Cambios
+
+          {loading ? (
+
+            <>
+              <Spinner
+                animation="border"
+                size="sm"
+                className="me-2"
+              />
+              Guardando...
+            </>
+
+          ) : (
+
+            "💾 Guardar Cambios"
+
+          )}
+
         </Button>
 
       </Modal.Footer>

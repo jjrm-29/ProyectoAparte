@@ -9,15 +9,16 @@ import {
     Image,
     Alert,
     Card,
-    Badge
+    Badge,
+    InputGroup
 } from "react-bootstrap";
 
 import { supabase } from "../../database/supabaseconfig";
 
 const ModalRegistroVenta = ({
     show,
-    onHide,
-    onSuccess
+    handleClose,
+    cargarVentas
 }) => {
 
     const [productos, setProductos] = useState([]);
@@ -33,10 +34,27 @@ const ModalRegistroVenta = ({
         }
     ]);
 
+    // =====================================
+    // CARGAR PRODUCTOS
+    // =====================================
+
     useEffect(() => {
 
         if (show) {
+
             cargarProductos();
+
+            // LIMPIAR FORMULARIO
+            setItems([
+                {
+                    id_producto: "",
+                    cantidad: 1,
+                    precio: 0,
+                    total: 0
+                }
+            ]);
+
+            setFormError("");
         }
 
     }, [show]);
@@ -60,6 +78,10 @@ const ModalRegistroVenta = ({
         }
     };
 
+    // =====================================
+    // CAMBIAR PRODUCTO
+    // =====================================
+
     const handleProducto = (index, e) => {
 
         const id = e.target.value;
@@ -82,6 +104,10 @@ const ModalRegistroVenta = ({
         setItems(nuevosItems);
     };
 
+    // =====================================
+    // CAMBIAR CANTIDAD
+    // =====================================
+
     const handleCantidad = (index, e) => {
 
         const cantidad = parseInt(e.target.value) || 1;
@@ -97,6 +123,10 @@ const ModalRegistroVenta = ({
         setItems(nuevosItems);
     };
 
+    // =====================================
+    // AGREGAR PRODUCTO
+    // =====================================
+
     const agregarProducto = () => {
 
         setItems([
@@ -110,22 +140,37 @@ const ModalRegistroVenta = ({
         ]);
     };
 
+    // =====================================
+    // ELIMINAR PRODUCTO
+    // =====================================
+
     const eliminarProducto = (index) => {
 
-        const nuevosItems = items.filter((_, i) => i !== index);
+        const nuevosItems = items.filter(
+            (_, i) => i !== index
+        );
 
         setItems(nuevosItems);
     };
+
+    // =====================================
+    // TOTAL GENERAL
+    // =====================================
 
     const totalGeneral = items.reduce(
         (acc, item) => acc + item.total,
         0
     );
 
+    // =====================================
+    // GUARDAR VENTA
+    // =====================================
+
     const guardar = async () => {
 
         try {
 
+            setLoading(true);
             setFormError("");
 
             const itemsValidos = items.filter(
@@ -134,60 +179,80 @@ const ModalRegistroVenta = ({
 
             if (itemsValidos.length === 0) {
 
-                setFormError("Debes seleccionar al menos un producto");
+                setFormError(
+                    "Debes seleccionar al menos un producto"
+                );
+
+                setLoading(false);
                 return;
             }
 
-            setLoading(true);
+            // =====================================
+            // CREAR VENTA
+            // =====================================
 
-            const fechaHoy = new Date()
-                .toISOString()
-                .split("T")[0];
-
-            let { data: tiempoExistente } = await supabase
-                .from("Dim_Tiempo")
-                .select("*")
-                .eq("fecha", fechaHoy)
-                .single();
-
-            if (!tiempoExistente) {
-
-                const { data: nuevoTiempo } = await supabase
-                    .from("Dim_Tiempo")
+            const { data: ventaCreada, error: errorVenta } =
+                await supabase
+                    .from("ventas")
                     .insert([
                         {
-                            fecha: fechaHoy,
-                            mes: new Date().toLocaleString("es-ES", {
-                                month: "long"
-                            }),
-                            anio: new Date().getFullYear()
+                            total: totalGeneral,
+                            fecha: new Date()
                         }
                     ])
                     .select()
                     .single();
 
-                tiempoExistente = nuevoTiempo;
+            if (errorVenta) {
+
+                console.error(errorVenta);
+
+                setFormError(
+                    "Error al crear la venta"
+                );
+
+                setLoading(false);
+                return;
             }
+
+            // =====================================
+            // INSERTAR DETALLE
+            // =====================================
 
             for (const item of itemsValidos) {
 
-                await supabase
-                    .from("Hecho_Ventas")
-                    .insert([
-                        {
-                            id_producto: item.id_producto,
-                            id_tiempo: tiempoExistente.id_tiempo,
-                            cantidad: item.cantidad,
-                            total: item.total
-                        }
-                    ]);
+                const { error: errorDetalle } =
+                    await supabase
+                        .from("detalle_venta")
+                        .insert([
+                            {
+                                id_venta: ventaCreada.id_venta,
+                                id_producto: item.id_producto,
+                                cantidad: item.cantidad,
+                                precio_unitario: item.precio,
+                                subtotal: item.total
+                            }
+                        ]);
+
+                if (errorDetalle) {
+
+                    console.error(errorDetalle);
+                    continue;
+                }
+
+                // =====================================
+                // ACTUALIZAR STOCK
+                // =====================================
 
                 const producto = productos.find(
-                    (p) => String(p.id_producto) === String(item.id_producto)
+                    (p) =>
+                        String(p.id_producto) ===
+                        String(item.id_producto)
                 );
 
                 const nuevoStock =
-                    (producto.stock || 0) - item.cantidad;
+                    Number(producto.stock) -
+                    Number(item.cantidad);
 
                 await supabase
                     .from("productos")
@@ -196,6 +261,10 @@ const ModalRegistroVenta = ({
                     })
                     .eq("id_producto", item.id_producto);
             }
+
+            // =====================================
+            // LIMPIAR
+            // =====================================
 
             setItems([
                 {
@@ -206,14 +275,19 @@ const ModalRegistroVenta = ({
                 }
             ]);
 
-            onHide();
-            onSuccess();
+            handleClose();
+
+            if (cargarVentas) {
+                cargarVentas();
+            }
 
         } catch (error) {
 
             console.error(error);
 
-            setFormError("Error al registrar venta");
+            setFormError(
+                "Error al registrar venta"
+            );
 
         } finally {
 
@@ -225,24 +299,34 @@ const ModalRegistroVenta = ({
 
         <Modal
             show={show}
-            onHide={onHide}
+            onHide={handleClose}
             centered
             size="xl"
         >
 
-            <Modal.Header closeButton className="border-0 pb-0">
+            {/* HEADER */}
+
+            <Modal.Header
+                closeButton
+                className="border-0 pb-0"
+            >
 
                 <Modal.Title className="fw-bold fs-3">
-                    🧾 Nueva Venta
+                    🧾 Registrar Venta
                 </Modal.Title>
 
             </Modal.Header>
+
+            {/* BODY */}
 
             <Modal.Body className="pt-2">
 
                 {formError && (
 
-                    <Alert variant="danger" className="rounded-4">
+                    <Alert
+                        variant="danger"
+                        className="rounded-4"
+                    >
                         {formError}
                     </Alert>
 
@@ -254,45 +338,46 @@ const ModalRegistroVenta = ({
 
                     <Col lg={8}>
 
-                        <div className="d-flex justify-content-between align-items-center mb-3">
+                        <div className="d-flex justify-content-between align-items-center mb-4">
 
-                            <h5 className="fw-bold mb-0">
-                                Productos Agregados
-                            </h5>
+                            <h4 className="fw-bold mb-0">
+                                Productos
+                            </h4>
 
                             <Button
                                 variant="dark"
                                 className="rounded-4 px-4"
                                 onClick={agregarProducto}
                             >
-                                + Agregar Producto
+                                ➕ Agregar
                             </Button>
 
                         </div>
 
                         <div
                             style={{
-                                maxHeight: "500px",
+                                maxHeight: "550px",
                                 overflowY: "auto"
                             }}
                         >
 
                             {items.map((item, index) => {
 
-                                const producto = productos.find(
-                                    (p) =>
-                                        String(p.id_producto) ===
-                                        String(item.id_producto)
-                                );
+                                const producto =
+                                    productos.find(
+                                        (p) =>
+                                            String(p.id_producto) ===
+                                            String(item.id_producto)
+                                    );
 
                                 return (
 
                                     <Card
                                         key={index}
-                                        className="border-0 shadow-sm rounded-4 mb-3"
+                                        className="border-0 shadow-sm rounded-5 mb-4"
                                     >
 
-                                        <Card.Body>
+                                        <Card.Body className="p-4">
 
                                             <Row className="align-items-center">
 
@@ -303,8 +388,8 @@ const ModalRegistroVenta = ({
                                                     <div
                                                         className="bg-light rounded-4 overflow-hidden mx-auto"
                                                         style={{
-                                                            width: "110px",
-                                                            height: "110px"
+                                                            width: "120px",
+                                                            height: "120px"
                                                         }}
                                                     >
 
@@ -323,7 +408,11 @@ const ModalRegistroVenta = ({
                                                         ) : (
 
                                                             <div className="d-flex justify-content-center align-items-center h-100">
-                                                                <span style={{ fontSize: "3rem" }}>
+                                                                <span
+                                                                    style={{
+                                                                        fontSize: "4rem"
+                                                                    }}
+                                                                >
                                                                     📦
                                                                 </span>
                                                             </div>
@@ -334,11 +423,13 @@ const ModalRegistroVenta = ({
 
                                                 </Col>
 
-                                                {/* FORM */}
+                                                {/* FORMULARIO */}
 
                                                 <Col md={9}>
 
                                                     <Row>
+
+                                                        {/* PRODUCTO */}
 
                                                         <Col md={6} className="mb-3">
 
@@ -373,6 +464,8 @@ const ModalRegistroVenta = ({
 
                                                         </Col>
 
+                                                        {/* CANTIDAD */}
+
                                                         <Col md={3} className="mb-3">
 
                                                             <Form.Label className="fw-semibold">
@@ -391,34 +484,69 @@ const ModalRegistroVenta = ({
 
                                                         </Col>
 
+                                                        {/* SUBTOTAL */}
+
                                                         <Col md={3} className="mb-3">
 
                                                             <Form.Label className="fw-semibold">
                                                                 Subtotal
                                                             </Form.Label>
 
-                                                            <Form.Control
-                                                                value={`C$ ${item.total.toFixed(2)}`}
-                                                                disabled
-                                                                className="rounded-4 fw-bold text-success"
-                                                            />
+                                                            <InputGroup>
+
+                                                                <InputGroup.Text>
+                                                                    C$
+                                                                </InputGroup.Text>
+
+                                                                <Form.Control
+                                                                    value={item.total.toFixed(2)}
+                                                                    disabled
+                                                                    className="fw-bold text-success"
+                                                                />
+
+                                                            </InputGroup>
 
                                                         </Col>
 
                                                     </Row>
 
-                                                    <div className="d-flex justify-content-between align-items-center mt-2">
+                                                    {/* INFO */}
 
-                                                        <div className="d-flex gap-2">
+                                                    <div className="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
 
-                                                            <Badge bg="dark" className="px-3 py-2 rounded-pill">
-                                                                Precio: C$ {item.precio.toFixed(2)}
+                                                        <div className="d-flex gap-2 flex-wrap">
+
+                                                            <Badge
+                                                                bg="primary"
+                                                                className="px-3 py-2 rounded-pill"
+                                                            >
+                                                                Precio:
+                                                                {" "}
+                                                                C$
+                                                                {" "}
+                                                                {item.precio.toFixed(2)}
                                                             </Badge>
 
-                                                            {producto?.stock >= 1 && (
+                                                            <Badge
+                                                                bg={
+                                                                    producto?.stock > 0
+                                                                        ? "success"
+                                                                        : "danger"
+                                                                }
+                                                                className="px-3 py-2 rounded-pill"
+                                                            >
+                                                                Stock:
+                                                                {" "}
+                                                                {producto?.stock || 0}
+                                                            </Badge>
 
-                                                                <Badge bg="success" className="px-3 py-2 rounded-pill">
-                                                                    Stock: {producto.stock}
+                                                            {producto?.categoria && (
+
+                                                                <Badge
+                                                                    bg="dark"
+                                                                    className="px-3 py-2 rounded-pill"
+                                                                >
+                                                                    {producto.categoria}
                                                                 </Badge>
 
                                                             )}
@@ -435,7 +563,7 @@ const ModalRegistroVenta = ({
                                                                     eliminarProducto(index)
                                                                 }
                                                             >
-                                                                Eliminar
+                                                                🗑 Eliminar
                                                             </Button>
 
                                                         )}
@@ -461,41 +589,49 @@ const ModalRegistroVenta = ({
 
                     <Col lg={4}>
 
-                        <Card className="border-0 shadow rounded-4 sticky-top">
+                        <Card className="border-0 shadow rounded-5 sticky-top">
 
                             <Card.Body className="p-4">
 
-                                <h4 className="fw-bold mb-4">
-                                    Resumen
-                                </h4>
+                                <h3 className="fw-bold mb-4">
+                                    💰 Resumen
+                                </h3>
 
-                                <div className="d-flex justify-content-between mb-3">
+                                <div className="mb-3">
 
-                                    <span className="text-muted">
-                                        Productos
-                                    </span>
+                                    <div className="d-flex justify-content-between">
 
-                                    <span className="fw-semibold">
-                                        {items.length}
-                                    </span>
+                                        <span className="text-muted">
+                                            Productos
+                                        </span>
+
+                                        <span className="fw-bold">
+                                            {items.length}
+                                        </span>
+
+                                    </div>
 
                                 </div>
 
-                                <div className="d-flex justify-content-between mb-4">
+                                <div className="mb-4">
 
-                                    <span className="text-muted">
-                                        Total General
-                                    </span>
+                                    <div className="d-flex justify-content-between align-items-center">
 
-                                    <span className="fw-bold fs-4 text-success">
-                                        C$ {totalGeneral.toFixed(2)}
-                                    </span>
+                                        <span className="text-muted">
+                                            Total General
+                                        </span>
+
+                                        <span className="fw-bold fs-3 text-success">
+                                            C$ {totalGeneral.toFixed(2)}
+                                        </span>
+
+                                    </div>
 
                                 </div>
 
                                 <Button
                                     variant="success"
-                                    className="w-100 rounded-4 py-3 fw-bold"
+                                    className="w-100 rounded-4 py-3 fw-bold fs-5"
                                     onClick={guardar}
                                     disabled={loading}
                                 >
@@ -513,7 +649,7 @@ const ModalRegistroVenta = ({
 
                                     ) : (
 
-                                        "Guardar Venta"
+                                        "💾 Guardar Venta"
 
                                     )}
 

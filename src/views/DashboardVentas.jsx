@@ -1,378 +1,671 @@
 import { useEffect, useState } from "react";
 import {
-  Container,
-  Row,
-  Col,
-  Card,
-  Spinner,
-  Table,
-  Badge
+    Container,
+    Row,
+    Col,
+    Card,
+    Spinner,
+    Table,
+    Badge,
+    Button,
+    ProgressBar
 } from "react-bootstrap";
 
 import { supabase } from "../database/supabaseconfig";
 
 const DashboardVentas = () => {
 
-  const [ventas, setVentas] = useState([]);
-  const [loading, setLoading] = useState(true);
+    const [ventas, setVentas] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    cargarVentas();
-  }, []);
+    useEffect(() => {
+        cargarVentas();
+    }, []);
 
-  const cargarVentas = async () => {
+    // =========================================
+    // CARGAR VENTAS
+    // =========================================
 
-    try {
+    const cargarVentas = async () => {
 
-      setLoading(true);
+        try {
 
-      const { data, error } = await supabase
-        .from("Hecho_Ventas")
-        .select("*");
+            setLoading(true);
 
-      if (error) {
-        console.error("Error Supabase:", error);
-        return;
-      }
+            const { data, error } = await supabase
+                .from("detalle_venta")
+                .select(`
+                    *,
+                    productos (
+                        id_producto,
+                        nombre,
+                        categoria,
+                        imagen
+                    )
+                `)
+                .order("id_detalle", { ascending: false });
 
-      setVentas(data || []);
+            if (error) {
 
-    } catch (err) {
+                console.error(error);
+                return;
+            }
 
-      console.error("Error:", err);
+            setVentas(data || []);
 
-    } finally {
+        } catch (error) {
 
-      setLoading(false);
-    }
-  };
+            console.error(error);
 
-  // KPIs
+        } finally {
 
-  const totalIngresos = ventas.reduce(
-    (acc, venta) => acc + Number(venta.total || 0),
-    0
-  );
+            setLoading(false);
+        }
+    };
 
-  const totalVentas = ventas.length;
+    // =========================================
+    // KPIs
+    // =========================================
 
-  const totalProductos = ventas.reduce(
-    (acc, venta) => acc + Number(venta.cantidad || 0),
-    0
-  );
+    const totalIngresos = ventas.reduce(
+        (acc, venta) => acc + Number(venta.subtotal || 0),
+        0
+    );
 
-  return (
+    const totalVentas = ventas.length;
 
-    <div className="dashboard-bg py-5">
+    const totalProductos = ventas.reduce(
+        (acc, venta) => acc + Number(venta.cantidad || 0),
+        0
+    );
 
-      <Container>
+    return (
 
-        {/* HEADER */}
+        <div className="dashboard-bg">
 
-        <div className="mb-5">
+            <Container fluid="xl" className="py-5">
 
-          <Badge bg="primary" className="px-3 py-2 rounded-pill mb-3">
-            PANEL ADMINISTRATIVO
-          </Badge>
+                {/* HERO */}
 
-          <h1 className="fw-bold text-white display-5">
-            Dashboard de Ventas
-          </h1>
+                <div className="hero-section mb-5">
 
-          <p className="text-light opacity-75">
-            Visualiza estadísticas, ingresos y rendimiento de tu negocio
-          </p>
+                    <div className="hero-overlay"></div>
 
-        </div>
+                    <Row className="align-items-center position-relative">
 
-        {loading ? (
+                        <Col lg={8}>
 
-          <div className="text-center py-5">
+                            <Badge
+                                bg="light"
+                                text="dark"
+                                className="rounded-pill px-4 py-2 fw-semibold mb-4"
+                            >
+                                PANEL ADMINISTRATIVO
+                            </Badge>
 
-            <Spinner animation="border" variant="light" />
+                            <h1 className="hero-title">
+                                Dashboard de Ventas
+                            </h1>
 
-            <p className="mt-3 text-light">
-              Cargando datos...
-            </p>
+                            <p className="hero-text">
+                                Visualiza estadísticas, ingresos y productos vendidos
+                                en tiempo real desde un panel moderno y elegante.
+                            </p>
 
-          </div>
+                            <div className="d-flex gap-3 flex-wrap mt-4">
 
-        ) : (
+                                <Button
+                                    variant="light"
+                                    size="lg"
+                                    className="rounded-4 fw-bold px-4 shadow-sm"
+                                >
+                                    📊 Ver Reportes
+                                </Button>
 
-          <>
+                                <Button
+                                    variant="outline-light"
+                                    size="lg"
+                                    className="rounded-4 fw-semibold px-4"
+                                >
+                                    📈 Estadísticas
+                                </Button>
 
-            {/* KPI */}
+                            </div>
 
-            <Row className="g-4 mb-5">
+                        </Col>
 
-              <Col md={4}>
+                        <Col lg={4} className="mt-5 mt-lg-0">
 
-                <Card className="kpi-card ingresos-card border-0 shadow-lg rounded-4">
+                            <Card className="hero-mini-card border-0">
 
-                  <Card.Body>
+                                <Card.Body>
 
-                    <div className="d-flex justify-content-between align-items-center">
+                                    <div className="d-flex justify-content-between align-items-center mb-3">
 
-                      <div>
+                                        <div>
 
-                        <p className="kpi-title">
-                          INGRESOS
-                        </p>
+                                            <small className="mini-text">
+                                                Rendimiento General
+                                            </small>
 
-                        <h2 className="fw-bold text-white">
-                          C$ {totalIngresos.toFixed(2)}
-                        </h2>
+                                            <h3 className="fw-bold mb-0 text-dark">
+                                                Excelente
+                                            </h3>
 
-                      </div>
+                                        </div>
 
-                      <div className="icon-circle">
-                        💰
-                      </div>
+                                        <div className="hero-icon">
+                                            🚀
+                                        </div>
 
-                    </div>
+                                    </div>
 
-                  </Card.Body>
+                                    <ProgressBar
+                                        now={85}
+                                        className="rounded-pill"
+                                        style={{ height: "10px" }}
+                                    />
 
-                </Card>
+                                    <p className="mini-text mt-3 mb-0">
+                                        Tu sistema mantiene un crecimiento constante.
+                                    </p>
 
-              </Col>
+                                </Card.Body>
 
-              <Col md={4}>
+                            </Card>
 
-                <Card className="kpi-card ventas-card border-0 shadow-lg rounded-4">
+                        </Col>
 
-                  <Card.Body>
-
-                    <div className="d-flex justify-content-between align-items-center">
-
-                      <div>
-
-                        <p className="kpi-title">
-                          VENTAS
-                        </p>
-
-                        <h2 className="fw-bold text-white">
-                          {totalVentas}
-                        </h2>
-
-                      </div>
-
-                      <div className="icon-circle">
-                        📊
-                      </div>
-
-                    </div>
-
-                  </Card.Body>
-
-                </Card>
-
-              </Col>
-
-              <Col md={4}>
-
-                <Card className="kpi-card productos-card border-0 shadow-lg rounded-4">
-
-                  <Card.Body>
-
-                    <div className="d-flex justify-content-between align-items-center">
-
-                      <div>
-
-                        <p className="kpi-title">
-                          PRODUCTOS
-                        </p>
-
-                        <h2 className="fw-bold text-white">
-                          {totalProductos}
-                        </h2>
-
-                      </div>
-
-                      <div className="icon-circle">
-                        📦
-                      </div>
-
-                    </div>
-
-                  </Card.Body>
-
-                </Card>
-
-              </Col>
-
-            </Row>
-
-            {/* TABLA */}
-
-            <Card className="border-0 rounded-4 shadow-lg table-card">
-
-              <Card.Body className="p-4">
-
-                <div className="d-flex justify-content-between align-items-center mb-4">
-
-                  <div>
-
-                    <h4 className="fw-bold mb-1">
-                      Historial de Ventas
-                    </h4>
-
-                    <p className="text-muted mb-0">
-                      Últimos registros almacenados
-                    </p>
-
-                  </div>
+                    </Row>
 
                 </div>
 
-                <Table responsive hover className="align-middle custom-table">
+                {/* KPIs */}
 
-                  <thead>
+                <Row className="g-4 mb-5">
 
-                    <tr>
+                    <Col lg={4} md={6}>
 
-                      <th>ID</th>
-                      <th>Cantidad</th>
-                      <th>Total</th>
-                      <th>Estado</th>
+                        <Card className="kpi-card ingresos-card border-0">
 
-                    </tr>
+                            <Card.Body>
 
-                  </thead>
+                                <div className="d-flex justify-content-between align-items-start">
 
-                  <tbody>
+                                    <div>
 
-                    {ventas.map((venta) => (
+                                        <p className="kpi-label">
+                                            INGRESOS TOTALES
+                                        </p>
 
-                      <tr key={venta.id_venta}>
+                                        <h2 className="fw-bold text-white">
+                                            C$ {totalIngresos.toFixed(2)}
+                                        </h2>
 
-                        <td>
-                          <span className="fw-semibold">
-                            #{venta.id_venta}
-                          </span>
-                        </td>
+                                        <small className="text-light opacity-75">
+                                            Ventas acumuladas
+                                        </small>
 
-                        <td>
+                                    </div>
 
-                          <Badge bg="info" className="px-3 py-2 rounded-pill">
-                            {venta.cantidad}
-                          </Badge>
+                                    <div className="kpi-icon">
+                                        💰
+                                    </div>
 
-                        </td>
+                                </div>
 
-                        <td className="fw-bold text-success">
+                            </Card.Body>
 
-                          C$ {Number(venta.total).toFixed(2)}
+                        </Card>
 
-                        </td>
+                    </Col>
 
-                        <td>
+                    <Col lg={4} md={6}>
 
-                          <Badge bg="success" className="px-3 py-2 rounded-pill">
-                            Completada
-                          </Badge>
+                        <Card className="kpi-card ventas-card border-0">
 
-                        </td>
+                            <Card.Body>
 
-                      </tr>
+                                <div className="d-flex justify-content-between align-items-start">
 
-                    ))}
+                                    <div>
 
-                  </tbody>
+                                        <p className="kpi-label">
+                                            TOTAL VENTAS
+                                        </p>
 
-                </Table>
+                                        <h2 className="fw-bold text-white">
+                                            {totalVentas}
+                                        </h2>
 
-              </Card.Body>
+                                        <small className="text-light opacity-75">
+                                            Ventas registradas
+                                        </small>
 
-            </Card>
+                                    </div>
 
-          </>
+                                    <div className="kpi-icon">
+                                        🧾
+                                    </div>
 
-        )}
+                                </div>
 
-      </Container>
+                            </Card.Body>
 
-      {/* ESTILOS */}
+                        </Card>
 
-      <style>{`
+                    </Col>
 
-        .dashboard-bg{
-          min-height:100vh;
-          background:
-            linear-gradient(135deg,#0f172a,#1e293b,#111827);
-        }
+                    <Col lg={4} md={12}>
 
-        .kpi-card{
-          overflow:hidden;
-          transition:.3s;
-        }
+                        <Card className="kpi-card productos-card border-0">
 
-        .kpi-card:hover{
-          transform:translateY(-5px);
-        }
+                            <Card.Body>
 
-        .ingresos-card{
-          background:linear-gradient(135deg,#16a34a,#22c55e);
-        }
+                                <div className="d-flex justify-content-between align-items-start">
 
-        .ventas-card{
-          background:linear-gradient(135deg,#2563eb,#3b82f6);
-        }
+                                    <div>
 
-        .productos-card{
-          background:linear-gradient(135deg,#7c3aed,#8b5cf6);
-        }
+                                        <p className="kpi-label">
+                                            PRODUCTOS VENDIDOS
+                                        </p>
 
-        .kpi-title{
-          color:rgba(255,255,255,.75);
-          margin-bottom:5px;
-          font-size:.85rem;
-          letter-spacing:1px;
-        }
+                                        <h2 className="fw-bold text-white">
+                                            {totalProductos}
+                                        </h2>
 
-        .icon-circle{
-          width:60px;
-          height:60px;
-          border-radius:50%;
-          background:rgba(255,255,255,.15);
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          font-size:1.5rem;
-        }
+                                        <small className="text-light opacity-75">
+                                            Productos comercializados
+                                        </small>
 
-        .table-card{
-          background:#ffffff;
-        }
+                                    </div>
 
-        .custom-table thead{
-          background:#f1f5f9;
-        }
+                                    <div className="kpi-icon">
+                                        📦
+                                    </div>
 
-        .custom-table thead th{
-          border:none;
-          padding:15px;
-          color:#334155;
-          font-weight:700;
-        }
+                                </div>
 
-        .custom-table tbody td{
-          padding:16px;
-          border-color:#f1f5f9;
-        }
+                            </Card.Body>
 
-        .custom-table tbody tr{
-          transition:.2s;
-        }
+                        </Card>
 
-        .custom-table tbody tr:hover{
-          background:#f8fafc;
-        }
+                    </Col>
 
-      `}</style>
+                </Row>
 
-    </div>
-  );
+                {/* TABLA */}
+
+                <Card className="table-card border-0 overflow-hidden">
+
+                    <div className="table-header">
+
+                        <div>
+
+                            <h3 className="fw-bold mb-1 text-dark">
+                                Historial de Ventas
+                            </h3>
+
+                            <p className="table-subtitle mb-0">
+                                Últimos movimientos registrados en el sistema
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    {loading ? (
+
+                        <div className="text-center py-5">
+
+                            <Spinner
+                                animation="border"
+                                variant="primary"
+                            />
+
+                            <p className="mt-3 table-subtitle">
+                                Cargando información...
+                            </p>
+
+                        </div>
+
+                    ) : (
+
+                        <Table responsive hover className="align-middle mb-0 custom-table">
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>ID</th>
+                                    <th>Producto</th>
+                                    <th>Categoría</th>
+                                    <th>Cantidad</th>
+                                    <th>Subtotal</th>
+                                    <th>Estado</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                {ventas.length > 0 ? (
+
+                                    ventas.map((venta) => (
+
+                                        <tr key={venta.id_detalle}>
+
+                                            <td className="fw-bold text-primary">
+                                                #{venta.id_detalle}
+                                            </td>
+
+                                            <td>
+
+                                                <div className="d-flex align-items-center gap-3">
+
+                                                    {venta.productos?.imagen ? (
+
+                                                        <img
+                                                            src={venta.productos.imagen}
+                                                            alt={venta.productos.nombre}
+                                                            className="producto-img"
+                                                        />
+
+                                                    ) : (
+
+                                                        <div className="producto-placeholder">
+                                                            📦
+                                                        </div>
+
+                                                    )}
+
+                                                    <div>
+
+                                                        <h6 className="fw-bold mb-1 text-dark">
+                                                            {venta.productos?.nombre || "Sin producto"}
+                                                        </h6>
+
+                                                        <small className="table-subtitle">
+                                                            Venta registrada
+                                                        </small>
+
+                                                    </div>
+
+                                                </div>
+
+                                            </td>
+
+                                            <td>
+
+                                                <Badge
+                                                    bg="light"
+                                                    text="dark"
+                                                    className="border px-3 py-2 rounded-pill"
+                                                >
+                                                    {venta.productos?.categoria || "Sin categoría"}
+                                                </Badge>
+
+                                            </td>
+
+                                            <td className="fw-semibold text-dark">
+                                                {venta.cantidad}
+                                            </td>
+
+                                            <td className="fw-bold text-success">
+                                                C$ {Number(venta.subtotal).toFixed(2)}
+                                            </td>
+
+                                            <td>
+
+                                                <Badge
+                                                    bg="success"
+                                                    className="px-3 py-2 rounded-pill"
+                                                >
+                                                    Completada
+                                                </Badge>
+
+                                            </td>
+
+                                        </tr>
+
+                                    ))
+
+                                ) : (
+
+                                    <tr>
+
+                                        <td
+                                            colSpan="6"
+                                            className="text-center py-5"
+                                        >
+
+                                            <div className="empty-state">
+
+                                                <div className="empty-icon">
+                                                    📊
+                                                </div>
+
+                                                <h3 className="fw-bold mt-4 text-dark">
+                                                    No hay ventas registradas
+                                                </h3>
+
+                                                <p className="table-subtitle">
+                                                    Aún no existen movimientos en el sistema
+                                                </p>
+
+                                            </div>
+
+                                        </td>
+
+                                    </tr>
+
+                                )}
+
+                            </tbody>
+
+                        </Table>
+
+                    )}
+
+                </Card>
+
+            </Container>
+
+            <style>{`
+
+                .dashboard-bg{
+                    min-height:100vh;
+                    background:
+                    radial-gradient(circle at top left,#1e3a8a 0%,#0f172a 45%,#020617 100%);
+                }
+
+                .hero-section{
+                    position:relative;
+                    overflow:hidden;
+                    border-radius:35px;
+                    padding:60px;
+                    background:
+                    linear-gradient(135deg,
+                    rgba(37,99,235,.95),
+                    rgba(15,23,42,.95));
+                    box-shadow:
+                    0 20px 60px rgba(0,0,0,.35);
+                }
+
+                .hero-overlay{
+                    position:absolute;
+                    top:-100px;
+                    right:-100px;
+                    width:300px;
+                    height:300px;
+                    background:rgba(255,255,255,.08);
+                    border-radius:50%;
+                }
+
+                .hero-title{
+                    color:white;
+                    font-size:3.5rem;
+                    font-weight:800;
+                    margin-bottom:20px;
+                    line-height:1.1;
+                }
+
+                .hero-text{
+                    color:rgba(255,255,255,.85);
+                    font-size:1.1rem;
+                    max-width:650px;
+                    line-height:1.8;
+                }
+
+                .hero-mini-card{
+                    border-radius:28px;
+                    background:white;
+                    box-shadow:0 15px 40px rgba(0,0,0,.25);
+                }
+
+                .mini-text{
+                    color:#64748b;
+                }
+
+                .hero-icon{
+                    width:70px;
+                    height:70px;
+                    border-radius:22px;
+                    background:#eff6ff;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:2rem;
+                }
+
+                .kpi-card{
+                    border-radius:28px;
+                    overflow:hidden;
+                    transition:.35s ease;
+                    box-shadow:0 15px 40px rgba(0,0,0,.25);
+                }
+
+                .kpi-card:hover{
+                    transform:translateY(-8px);
+                }
+
+                .ingresos-card{
+                    background:linear-gradient(135deg,#059669,#10b981);
+                }
+
+                .ventas-card{
+                    background:linear-gradient(135deg,#2563eb,#3b82f6);
+                }
+
+                .productos-card{
+                    background:linear-gradient(135deg,#7c3aed,#8b5cf6);
+                }
+
+                .kpi-label{
+                    color:rgba(255,255,255,.75);
+                    font-size:.85rem;
+                    font-weight:700;
+                    letter-spacing:1px;
+                    margin-bottom:12px;
+                }
+
+                .kpi-icon{
+                    width:75px;
+                    height:75px;
+                    border-radius:24px;
+                    background:rgba(255,255,255,.15);
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:2rem;
+                }
+
+                .table-card{
+                    border-radius:30px;
+                    box-shadow:0 15px 50px rgba(0,0,0,.25);
+                    background:white;
+                }
+
+                .table-header{
+                    padding:30px;
+                    border-bottom:1px solid #e5e7eb;
+                    background:white;
+                }
+
+                .table-subtitle{
+                    color:#64748b;
+                }
+
+                .custom-table thead{
+                    background:#f8fafc;
+                }
+
+                .custom-table thead th{
+                    padding:20px;
+                    border:none;
+                    color:#0f172a;
+                    font-size:.95rem;
+                    font-weight:700;
+                }
+
+                .custom-table tbody td{
+                    padding:20px;
+                    vertical-align:middle;
+                    border-color:#f1f5f9;
+                }
+
+                .custom-table tbody tr{
+                    transition:.25s ease;
+                }
+
+                .custom-table tbody tr:hover{
+                    background:#f8fafc;
+                }
+
+                .producto-img{
+                    width:65px;
+                    height:65px;
+                    object-fit:cover;
+                    border-radius:18px;
+                    border:3px solid #f1f5f9;
+                }
+
+                .producto-placeholder{
+                    width:65px;
+                    height:65px;
+                    border-radius:18px;
+                    background:#f1f5f9;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:1.7rem;
+                }
+
+                .empty-state{
+                    padding:40px;
+                }
+
+                .empty-icon{
+                    font-size:5rem;
+                }
+
+                @media(max-width:768px){
+
+                    .hero-section{
+                        padding:35px 25px;
+                    }
+
+                    .hero-title{
+                        font-size:2.3rem;
+                    }
+
+                }
+
+            `}</style>
+
+        </div>
+    );
 };
 
 export default DashboardVentas;
