@@ -80,17 +80,9 @@ const Ventas = () => {
 
   return (
 
-    <Container fluid className="py-4 px-lg-5">
+    <Container fluid="lg" className="px-0">
 
-      {/* HEADER */}
-
-      <div
-        className="rounded-5 overflow-hidden mb-5 position-relative p-5 shadow-lg"
-        style={{
-          background:
-            "linear-gradient(135deg,#0f172a,#1e3a8a,#2563eb)"
-        }}
-      >
+      <div className="page-hero animate-fade-left mb-4">
 
         <Row className="align-items-center">
 
@@ -104,11 +96,11 @@ const Ventas = () => {
               PANEL ADMINISTRATIVO
             </Badge>
 
-            <h1 className="fw-bold text-white display-5">
+            <h1 className="fw-bold display-5">
               Gestión de Ventas
             </h1>
 
-            <p className="text-white opacity-75 fs-5">
+            <p className="fs-5">
               Administra todas las ventas de manera rápida y moderna
             </p>
 
@@ -120,11 +112,7 @@ const Ventas = () => {
               type="button"
               size="lg"
               onClick={() => setShowRegistro(true)}
-              className="rounded-4 px-4 fw-bold border-0 shadow"
-              style={{
-                background: "white",
-                color: "#111827"
-              }}
+              className="btn-hero-cta rounded-pill px-4 btn-interactive"
             >
               ➕ Registrar Venta
             </Button>

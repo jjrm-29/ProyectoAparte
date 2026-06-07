@@ -1,159 +1,105 @@
-import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Container, Nav, Navbar, Offcanvas, Badge } from "react-bootstrap";
+import { Container, Nav, Navbar, Offcanvas } from "react-bootstrap";
 
 import logo from "../../assets/logo_tpo.webp";
 import { supabase } from "../../database/supabaseconfig";
+import BotonTema from "./BotonTema";
+
+const RUTAS = [
+  { ruta: "/", etiqueta: "Inicio" },
+  { ruta: "/categorias", etiqueta: "Categorías" },
+  { ruta: "/productos", etiqueta: "Productos" },
+  { ruta: "/catalogo", etiqueta: "Catálogo" },
+  { ruta: "/ventas", etiqueta: "Ventas" },
+  { ruta: "/dashboard", etiqueta: "Resumen" },
+];
 
 const Encabezado = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
-    const [showOffcanvas, setShowOffcanvas] = useState(false);
+  const esLogin = location.pathname === "/login";
+  const usuario = localStorage.getItem("usuario-supabase");
 
-    const esLogin = location.pathname === "/login";
-    const usuario = localStorage.getItem("usuario-supabase");
+  const esActivo = (ruta) => location.pathname === ruta;
 
-    const esActivo = (ruta) => location.pathname === ruta;
+  const manejarNavegacion = (ruta) => {
+    navigate(ruta);
+  };
 
-    const manejarNavegacion = (ruta) => {
-        navigate(ruta);
-        setShowOffcanvas(false);
-    };
+  const cerrarSesion = async () => {
+    try {
+      await supabase.auth.signOut();
+      localStorage.removeItem("usuario-supabase");
+      navigate("/login");
+    } catch (err) {
+      console.error("Error al cerrar sesión:", err.message);
+    }
+  };
 
-    const cerrarSesion = async () => {
-        try {
-            await supabase.auth.signOut();
-            localStorage.removeItem("usuario-supabase");
-            navigate("/login");
-        } catch (err) {
-            console.error("Error al cerrar sesión:", err.message);
-        }
-    };
+  if (esLogin) {
+    return null;
+  }
 
-    return (
-        <Navbar expand="md" fixed="top" className="navbar-pro shadow" variant="dark">
-            <Container>
+  const enlacesNav = (
+    <>
+      {RUTAS.map(({ ruta, etiqueta }) => (
+        <Nav.Link
+          key={ruta}
+          onClick={() => manejarNavegacion(ruta)}
+          className={esActivo(ruta) ? "active-link" : ""}
+        >
+          {etiqueta}
+        </Nav.Link>
+      ))}
 
-                {/* Logo */}
-                <Navbar.Brand
-                    onClick={() => manejarNavegacion("/")}
-                    className="d-flex align-items-center gap-2"
-                    style={{ cursor: "pointer" }}
-                >
-                    <img src={logo} width="42" height="42" alt="logo" />
-                    <span className="fw-bold fs-5">Pulpería</span>
-                </Navbar.Brand>
+      <div className="d-flex align-items-center ms-md-2 mt-3 mt-md-0">
+        <BotonTema />
+      </div>
 
-                {/* Toggle Móvil */}
-                {!esLogin && (
-                    <Navbar.Toggle onClick={() => setShowOffcanvas(true)} />
-                )}
+      {usuario && (
+        <div className="d-flex flex-column flex-md-row align-items-md-center gap-2 ms-md-2 mt-3 mt-md-0 pt-3 pt-md-0 border-top border-md-0">
+          <span className="user-pill badge px-3 py-2">{usuario}</span>
+          <Nav.Link onClick={cerrarSesion} className="nav-logout">
+            Cerrar sesión
+          </Nav.Link>
+        </div>
+      )}
+    </>
+  );
 
-                {/* Offcanvas - Menú Móvil */}
-                <Navbar.Offcanvas
-                    placement="end"
-                    show={showOffcanvas}
-                    onHide={() => setShowOffcanvas(false)}
-                >
-                    <Offcanvas.Header closeButton>
-                        <Offcanvas.Title>Menú</Offcanvas.Title>
-                    </Offcanvas.Header>
+  return (
+    <Navbar expand="md" fixed="top" className="site-navbar animate-slide-down" variant="light">
+      <Container>
+        <Navbar.Brand
+          onClick={() => manejarNavegacion("/")}
+          className="d-flex align-items-center gap-2"
+          style={{ cursor: "pointer" }}
+        >
+          <img src={logo} width="36" height="36" alt="Pulpería Chevez" />
+          Pulpería Chevez
+        </Navbar.Brand>
 
-                    <Offcanvas.Body>
-                        {!esLogin && (
-                            <Nav className="ms-auto align-items-md-center gap-md-3">
+        <Navbar.Toggle aria-controls="menu-principal" />
 
-                                <Nav.Link
-                                    onClick={() => manejarNavegacion("/")}
-                                    className={esActivo("/") ? "active-link" : ""}
-                                >
-                                    Inicio
-                                </Nav.Link>
+        <Navbar.Offcanvas
+          id="menu-principal"
+          placement="end"
+          aria-labelledby="menu-principal"
+        >
+          <Offcanvas.Header closeButton>
+            <Offcanvas.Title className="fw-semibold">Menú</Offcanvas.Title>
+          </Offcanvas.Header>
 
-                                <Nav.Link
-                                    onClick={() => manejarNavegacion("/categorias")}
-                                    className={esActivo("/categorias") ? "active-link" : ""}
-                                >
-                                    Categorías
-                                </Nav.Link>
-
-                                <Nav.Link
-                                    onClick={() => manejarNavegacion("/productos")}
-                                    className={esActivo("/productos") ? "active-link" : ""}
-                                >
-                                    Productos
-                                </Nav.Link>
-
-                                <Nav.Link
-                                    onClick={() => manejarNavegacion("/catalogo")}
-                                    className={esActivo("/catalogo") ? "active-link" : ""}
-                                >
-                                    Catálogo
-                                </Nav.Link>
-
-                                <Nav.Link
-                                    onClick={() => manejarNavegacion("/ventas")}
-                                    className={esActivo("/ventas") ? "active-link" : ""}
-                                >
-                                    🧾 Ventas
-                                </Nav.Link>
-
-                                <Nav.Link
-                                    onClick={() => manejarNavegacion("/dashboard")}
-                                    className={esActivo("/dashboard") ? "active-link" : ""}
-                                >
-                                    📊 Dashboard
-                                </Nav.Link>
-
-                                {/* Usuario y Acciones */}
-                                {usuario && (
-                                    <div className="d-flex align-items-center gap-2 ms-md-3 mt-3 mt-md-0">
-                                        <Badge bg="light" text="dark" className="px-3 py-2">
-                                            {usuario}
-                                        </Badge>
-
-                                        <Nav.Link
-                                            onClick={cerrarSesion}
-                                            className="text-danger fw-semibold"
-                                        >
-                                            Salir
-                                        </Nav.Link>
-                                    </div>
-                                )}
-                            </Nav>
-                        )}
-                    </Offcanvas.Body>
-                </Navbar.Offcanvas>
-
-            </Container>
-
-            {/* Estilos internos */}
-            <style>
-                {`
-                .navbar-pro {
-                    background: linear-gradient(90deg, #1e3c72, #2a5298);
-                    backdrop-filter: blur(10px);
-                }
-
-                .active-link {
-                    font-weight: bold;
-                    border-bottom: 2px solid #fff;
-                }
-
-                .navbar-pro .nav-link {
-                    color: rgba(255,255,255,0.85);
-                    transition: all 0.3s ease;
-                }
-
-                .navbar-pro .nav-link:hover {
-                    color: #fff;
-                    transform: translateY(-1px);
-                }
-                `}
-            </style>
-        </Navbar>
-    );
+          <Offcanvas.Body>
+            <Nav className="ms-auto align-items-md-center gap-md-1">
+              {enlacesNav}
+            </Nav>
+          </Offcanvas.Body>
+        </Navbar.Offcanvas>
+      </Container>
+    </Navbar>
+  );
 };
 
 export default Encabezado;

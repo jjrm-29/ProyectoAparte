@@ -25,18 +25,23 @@ const TarjetaCatalogo = ({ producto }) => {
             {/* TARJETA */}
 
             <Card
-                className="h-100 border-0 shadow-sm rounded-4 overflow-hidden tarjeta-catalogo"
-                style={{
-                    transition: "all 0.3s ease",
-                    cursor: "pointer"
-                }}
+                className="h-100 overflow-hidden tarjeta-catalogo"
+                style={{ cursor: "pointer" }}
                 onClick={() => setMostrarModal(true)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setMostrarModal(true);
+                    }
+                }}
             >
 
                 {/* IMAGEN */}
 
                 <div
-                    className="position-relative bg-light"
+                    className="position-relative tarjeta-imagen-placeholder"
                     style={{
                         height: "260px",
                         overflow: "hidden"
@@ -60,7 +65,7 @@ const TarjetaCatalogo = ({ producto }) => {
 
                     ) : (
 
-                        <div className="d-flex align-items-center justify-content-center h-100 bg-light">
+                        <div className="d-flex align-items-center justify-content-center h-100 tarjeta-imagen-placeholder">
 
                             <i className="bi bi-image text-secondary fs-1"></i>
 
@@ -88,7 +93,7 @@ const TarjetaCatalogo = ({ producto }) => {
 
                 <Card.Body className="d-flex flex-column p-4">
 
-                    <Card.Title className="fw-bold text-dark mb-2">
+                    <Card.Title className="fw-bold mb-2">
 
                         {producto.nombre}
 
@@ -116,7 +121,7 @@ const TarjetaCatalogo = ({ producto }) => {
 
                     <div className="mt-3">
 
-                        <h4 className="fw-bold text-success mb-1">
+                        <h4 className="fw-bold mb-1" style={{ color: "var(--color-brand)" }}>
 
                             C$ {parseFloat(producto.precio || 0).toFixed(2)}
 
@@ -200,7 +205,7 @@ const TarjetaCatalogo = ({ producto }) => {
                                 {producto.categoria}
                             </Badge>
 
-                            <h2 className="fw-bold text-success mb-3">
+                            <h2 className="fw-bold mb-3" style={{ color: "var(--color-brand)" }}>
 
                                 C$ {parseFloat(producto.precio || 0).toFixed(2)}
 

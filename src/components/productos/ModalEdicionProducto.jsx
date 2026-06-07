@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
     Modal,
     Form,
@@ -20,12 +20,12 @@ const ModalEdicionProducto = ({
 }) => {
 
     const [formData, setFormData] = useState({
-        nombre: "",
-        precio: "",
-        stock: "",
-        categoria: "",
-        descripcion: "",
-        imagen: "",
+        nombre: producto?.nombre || "",
+        precio: producto?.precio || "",
+        stock: producto?.stock || "",
+        categoria: producto?.categoria || "",
+        descripcion: producto?.descripcion || "",
+        imagen: producto?.imagen || "",
         archivo: null
     });
 
@@ -36,24 +36,6 @@ const ModalEdicionProducto = ({
         "Lácteos",
         "Limpieza"
     ];
-
-    useEffect(() => {
-
-        if (producto) {
-
-            setFormData({
-                nombre: producto.nombre || "",
-                precio: producto.precio || "",
-                stock: producto.stock || "",
-                categoria: producto.categoria || "",
-                descripcion: producto.descripcion || "",
-                imagen: producto.imagen || "",
-                archivo: null
-            });
-
-        }
-
-    }, [producto]);
 
     // =========================
     // INPUTS

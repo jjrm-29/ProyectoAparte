@@ -1,0 +1,4 @@
+/* Reset mínimo — estilos principales en App.css */
+#root {
+  min-height: 100vh;
+}

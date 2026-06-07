@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import {
     Modal,
     Button,
@@ -19,36 +19,16 @@ const ModalEdicionCategoria = ({
 }) => {
 
     const [formData, setFormData] = useState({
-        id: "",
-        nombre: "",
-        descripcion: "",
-        imagen: ""
+        id: categoria?.id || "",
+        nombre: categoria?.nombre || "",
+        descripcion: categoria?.descripcion || "",
+        imagen: categoria?.imagen || ""
     });
 
-    const [previewImage, setPreviewImage] = useState(null);
+    const [previewImage, setPreviewImage] = useState(categoria?.imagen || null);
     const [formError, setFormError] = useState("");
 
     const fileInputRef = useRef(null);
-
-    // =========================
-    // CARGAR DATOS
-    // =========================
-
-    useEffect(() => {
-
-        if (categoria && show) {
-
-            setFormData({
-                id: categoria.id || "",
-                nombre: categoria.nombre || "",
-                descripcion: categoria.descripcion || "",
-                imagen: categoria.imagen || ""
-            });
-
-            setPreviewImage(categoria.imagen || null);
-        }
-
-    }, [categoria, show]);
 
     // =========================
     // CAMBIOS INPUT

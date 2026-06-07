@@ -127,10 +127,6 @@ const Categorias = () => {
   // BUSQUEDA
   // ============================
 
-  const manejarBusqueda = (e) => {
-    setTextoBusqueda(e.target.value);
-  };
-
   useEffect(() => {
 
     if (!textoBusqueda.trim()) {
@@ -219,34 +215,28 @@ const Categorias = () => {
 
   return (
 
-    <Container className="margen-superior-main py-5">
+    <Container fluid="lg" className="px-0">
 
-      <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-
-        <div>
-
-          <h1 className="fw-bold mb-1">
-            Gestión de Categorías
-          </h1>
-
-          <p className="text-muted mb-0">
-            Administra todas las categorías registradas
-          </p>
-
+      <div className="page-hero animate-fade-left mb-4">
+        <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+          <div>
+            <span className="home-kicker">Organización</span>
+            <h1 className="display-6 fw-bold mb-2">Gestión de Categorías</h1>
+            <p className="lead mb-0">Administra todas las categorías registradas</p>
+          </div>
+          <Button
+            variant="light"
+            size="lg"
+            className="btn-hero-cta rounded-pill px-4 btn-interactive"
+            onClick={() => setMostrarModal(true)}
+          >
+            <i className="bi bi-plus-lg me-2" aria-hidden="true" />
+            Nueva categoría
+          </Button>
         </div>
-
-        <Button
-          variant="primary"
-          size="lg"
-          className="rounded-3 shadow-sm"
-          onClick={() => setMostrarModal(true)}
-        >
-          + Nueva Categoría
-        </Button>
-
       </div>
 
-      <Card className="border-0 shadow-sm rounded-4 mb-4">
+      <Card className="border-0 shadow-sm rounded-4 mb-4 filter-card animate-scale-in">
 
         <Card.Body>
 
@@ -256,9 +246,7 @@ const Categorias = () => {
 
               <CuadroBusquedas
                 categorias={categorias}
-                onBuscar={(texto, categoria) => {
-                  console.log(texto, categoria);
-                }}
+                onBuscar={(texto) => setTextoBusqueda(texto)}
               />
 
             </Col>
@@ -386,6 +374,7 @@ const Categorias = () => {
       {/* MODAL EDITAR */}
 
       <ModalEdicionCategoria
+        key={categoriaEditar?.id ?? "edicion"}
         show={mostrarModalEdicion}
         onHide={() => setMostrarModalEdicion(false)}
         categoria={categoriaEditar}

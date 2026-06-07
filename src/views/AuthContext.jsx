@@ -34,4 +34,5 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook compartido con AuthProvider
 export const useAuth = () => useContext(AuthContext);

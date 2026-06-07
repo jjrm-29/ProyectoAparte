@@ -13,8 +13,8 @@ import {
 
 import { supabase } from "../database/supabaseconfig";
 
-import FormularioRegistroProducto from "../../src/components/productos/FormularioRegistroProducto";
-import ModalEdicionProducto from "../../src/components/productos/ModalEdicionProducto";
+import FormularioRegistroProducto from "../components/productos/FormularioRegistroProducto";
+import ModalEdicionProducto from "../components/productos/ModalEdicionProducto";
 import ModalEliminacion from "../components/productos/ModalEliminacionProducto";
 
 import TablaProductos from "../components/productos/TablaProductos";
@@ -42,7 +42,6 @@ const Productos = () => {
     const [productoEditar, setProductoEditar] = useState(null);
     const [productoEliminar, setProductoEliminar] = useState(null);
 
-    const [modalLoading, setModalLoading] = useState(false);
 
     const [toast, setToast] = useState({
         mostrar: false,
@@ -158,17 +157,9 @@ const Productos = () => {
 
     return (
 
-        <Container fluid className="margen-superior-main py-4 px-lg-5">
+        <Container fluid="lg" className="px-0">
 
-            {/* HERO */}
-
-            <div
-                className="rounded-4 p-4 p-lg-5 mb-5 text-white shadow-lg"
-                style={{
-                    background:
-                        "linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%)"
-                }}
-            >
+            <div className="page-hero animate-fade-left mb-4">
 
                 <Row className="align-items-center">
 
@@ -206,7 +197,7 @@ const Productos = () => {
                         <Button
                             variant="light"
                             size="lg"
-                            className="fw-bold rounded-4 px-4 shadow-sm"
+                            className="btn-hero-cta fw-bold rounded-pill px-4 btn-interactive"
                             onClick={() => setShowRegistroModal(true)}
                         >
                             ➕ Nuevo Producto
@@ -220,7 +211,7 @@ const Productos = () => {
 
             {/* FILTROS */}
 
-            <Card className="border-0 shadow-sm rounded-4 mb-5">
+            <Card className="border-0 shadow-sm rounded-4 mb-5 animate-scale-in filter-card">
 
                 <Card.Body className="p-4">
 
@@ -283,7 +274,7 @@ const Productos = () => {
                             <Button
                                 variant="primary"
                                 size="lg"
-                                className="w-100 rounded-4 fw-semibold shadow-sm"
+                                className="w-100 rounded-pill fw-semibold btn-interactive"
                                 onClick={() => {
                                     setBusqueda("");
                                     setCategoriaFiltro("Todas");
@@ -320,39 +311,19 @@ const Productos = () => {
             ) : (
 
                 <>
-                    <div className="d-none d-md-block">
+                    <div className="d-none d-md-block animate-fade-right">
 
-                        <div className="bg-white rounded-4 shadow-sm border overflow-hidden">
-
-                            <div className="p-4 border-bottom">
-
-                                <h4 className="fw-bold mb-1">
-                                    Inventario de Productos
-                                </h4>
-
-                                <p className="text-muted mb-0">
-                                    {productosFiltrados.length} productos encontrados
-                                </p>
-
-                            </div>
-
-                            <div className="table-responsive">
-
-                                <TablaProductos
-                                    productos={productosPaginados}
-                                    abrirModalEdicion={(producto) => {
-                                        setProductoEditar(producto);
-                                        setShowEditModal(true);
-                                    }}
-                                    abrirModalEliminacion={(producto) => {
-                                        setProductoEliminar(producto);
-                                        setShowDeleteModal(true);
-                                    }}
-                                />
-
-                            </div>
-
-                        </div>
+                        <TablaProductos
+                            productos={productosPaginados}
+                            abrirModalEdicion={(producto) => {
+                                setProductoEditar(producto);
+                                setShowEditModal(true);
+                            }}
+                            abrirModalEliminacion={(producto) => {
+                                setProductoEliminar(producto);
+                                setShowDeleteModal(true);
+                            }}
+                        />
 
                     </div>
 
@@ -397,15 +368,14 @@ const Productos = () => {
                 show={showRegistroModal}
                 onHide={() => setShowRegistroModal(false)}
                 onGuardar={() => {}}
-                loading={modalLoading}
             />
 
             <ModalEdicionProducto
+                key={productoEditar?.id_producto ?? "edicion"}
                 show={showEditModal}
                 onHide={() => setShowEditModal(false)}
                 producto={productoEditar}
                 onGuardar={() => {}}
-                loading={modalLoading}
             />
 
             <ModalEliminacion
@@ -413,7 +383,6 @@ const Productos = () => {
                 onHide={() => setShowDeleteModal(false)}
                 item={productoEliminar}
                 onConfirmar={() => {}}
-                loading={modalLoading}
                 tipo="producto"
             />
 

@@ -1,671 +1,255 @@
-import { useEffect, useState } from "react";
-import {
-    Container,
-    Row,
-    Col,
-    Card,
-    Spinner,
-    Table,
-    Badge,
-    Button,
-    ProgressBar
-} from "react-bootstrap";
-
-import { supabase } from "../database/supabaseconfig";
-
-const DashboardVentas = () => {
-
-    const [ventas, setVentas] = useState([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        cargarVentas();
-    }, []);
-
-    // =========================================
-    // CARGAR VENTAS
-    // =========================================
-
-    const cargarVentas = async () => {
-
-        try {
-
-            setLoading(true);
-
-            const { data, error } = await supabase
-                .from("detalle_venta")
-                .select(`
-                    *,
-                    productos (
-                        id_producto,
-                        nombre,
-                        categoria,
-                        imagen
-                    )
-                `)
-                .order("id_detalle", { ascending: false });
-
-            if (error) {
-
-                console.error(error);
-                return;
-            }
-
-            setVentas(data || []);
-
-        } catch (error) {
-
-            console.error(error);
-
-        } finally {
-
-            setLoading(false);
-        }
-    };
-
-    // =========================================
-    // KPIs
-    // =========================================
-
-    const totalIngresos = ventas.reduce(
-        (acc, venta) => acc + Number(venta.subtotal || 0),
-        0
-    );
-
-    const totalVentas = ventas.length;
-
-    const totalProductos = ventas.reduce(
-        (acc, venta) => acc + Number(venta.cantidad || 0),
-        0
-    );
-
-    return (
-
-        <div className="dashboard-bg">
-
-            <Container fluid="xl" className="py-5">
-
-                {/* HERO */}
-
-                <div className="hero-section mb-5">
-
-                    <div className="hero-overlay"></div>
-
-                    <Row className="align-items-center position-relative">
-
-                        <Col lg={8}>
-
-                            <Badge
-                                bg="light"
-                                text="dark"
-                                className="rounded-pill px-4 py-2 fw-semibold mb-4"
-                            >
-                                PANEL ADMINISTRATIVO
-                            </Badge>
-
-                            <h1 className="hero-title">
-                                Dashboard de Ventas
-                            </h1>
-
-                            <p className="hero-text">
-                                Visualiza estadísticas, ingresos y productos vendidos
-                                en tiempo real desde un panel moderno y elegante.
-                            </p>
-
-                            <div className="d-flex gap-3 flex-wrap mt-4">
-
-                                <Button
-                                    variant="light"
-                                    size="lg"
-                                    className="rounded-4 fw-bold px-4 shadow-sm"
-                                >
-                                    📊 Ver Reportes
-                                </Button>
-
-                                <Button
-                                    variant="outline-light"
-                                    size="lg"
-                                    className="rounded-4 fw-semibold px-4"
-                                >
-                                    📈 Estadísticas
-                                </Button>
-
-                            </div>
-
-                        </Col>
-
-                        <Col lg={4} className="mt-5 mt-lg-0">
-
-                            <Card className="hero-mini-card border-0">
-
-                                <Card.Body>
-
-                                    <div className="d-flex justify-content-between align-items-center mb-3">
-
-                                        <div>
-
-                                            <small className="mini-text">
-                                                Rendimiento General
-                                            </small>
-
-                                            <h3 className="fw-bold mb-0 text-dark">
-                                                Excelente
-                                            </h3>
-
-                                        </div>
-
-                                        <div className="hero-icon">
-                                            🚀
-                                        </div>
-
-                                    </div>
-
-                                    <ProgressBar
-                                        now={85}
-                                        className="rounded-pill"
-                                        style={{ height: "10px" }}
-                                    />
-
-                                    <p className="mini-text mt-3 mb-0">
-                                        Tu sistema mantiene un crecimiento constante.
-                                    </p>
-
-                                </Card.Body>
-
-                            </Card>
-
-                        </Col>
-
-                    </Row>
-
-                </div>
-
-                {/* KPIs */}
-
-                <Row className="g-4 mb-5">
-
-                    <Col lg={4} md={6}>
-
-                        <Card className="kpi-card ingresos-card border-0">
-
-                            <Card.Body>
-
-                                <div className="d-flex justify-content-between align-items-start">
-
-                                    <div>
-
-                                        <p className="kpi-label">
-                                            INGRESOS TOTALES
-                                        </p>
-
-                                        <h2 className="fw-bold text-white">
-                                            C$ {totalIngresos.toFixed(2)}
-                                        </h2>
-
-                                        <small className="text-light opacity-75">
-                                            Ventas acumuladas
-                                        </small>
-
-                                    </div>
-
-                                    <div className="kpi-icon">
-                                        💰
-                                    </div>
-
-                                </div>
-
-                            </Card.Body>
-
-                        </Card>
-
-                    </Col>
-
-                    <Col lg={4} md={6}>
-
-                        <Card className="kpi-card ventas-card border-0">
-
-                            <Card.Body>
-
-                                <div className="d-flex justify-content-between align-items-start">
-
-                                    <div>
-
-                                        <p className="kpi-label">
-                                            TOTAL VENTAS
-                                        </p>
-
-                                        <h2 className="fw-bold text-white">
-                                            {totalVentas}
-                                        </h2>
-
-                                        <small className="text-light opacity-75">
-                                            Ventas registradas
-                                        </small>
-
-                                    </div>
-
-                                    <div className="kpi-icon">
-                                        🧾
-                                    </div>
-
-                                </div>
-
-                            </Card.Body>
-
-                        </Card>
-
-                    </Col>
-
-                    <Col lg={4} md={12}>
-
-                        <Card className="kpi-card productos-card border-0">
-
-                            <Card.Body>
-
-                                <div className="d-flex justify-content-between align-items-start">
-
-                                    <div>
-
-                                        <p className="kpi-label">
-                                            PRODUCTOS VENDIDOS
-                                        </p>
-
-                                        <h2 className="fw-bold text-white">
-                                            {totalProductos}
-                                        </h2>
-
-                                        <small className="text-light opacity-75">
-                                            Productos comercializados
-                                        </small>
-
-                                    </div>
-
-                                    <div className="kpi-icon">
-                                        📦
-                                    </div>
-
-                                </div>
-
-                            </Card.Body>
-
-                        </Card>
-
-                    </Col>
-
-                </Row>
-
-                {/* TABLA */}
-
-                <Card className="table-card border-0 overflow-hidden">
-
-                    <div className="table-header">
-
-                        <div>
-
-                            <h3 className="fw-bold mb-1 text-dark">
-                                Historial de Ventas
-                            </h3>
-
-                            <p className="table-subtitle mb-0">
-                                Últimos movimientos registrados en el sistema
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                    {loading ? (
-
-                        <div className="text-center py-5">
-
-                            <Spinner
-                                animation="border"
-                                variant="primary"
-                            />
-
-                            <p className="mt-3 table-subtitle">
-                                Cargando información...
-                            </p>
-
-                        </div>
-
-                    ) : (
-
-                        <Table responsive hover className="align-middle mb-0 custom-table">
-
-                            <thead>
-
-                                <tr>
-
-                                    <th>ID</th>
-                                    <th>Producto</th>
-                                    <th>Categoría</th>
-                                    <th>Cantidad</th>
-                                    <th>Subtotal</th>
-                                    <th>Estado</th>
-
-                                </tr>
-
-                            </thead>
-
-                            <tbody>
-
-                                {ventas.length > 0 ? (
-
-                                    ventas.map((venta) => (
-
-                                        <tr key={venta.id_detalle}>
-
-                                            <td className="fw-bold text-primary">
-                                                #{venta.id_detalle}
-                                            </td>
-
-                                            <td>
-
-                                                <div className="d-flex align-items-center gap-3">
-
-                                                    {venta.productos?.imagen ? (
-
-                                                        <img
-                                                            src={venta.productos.imagen}
-                                                            alt={venta.productos.nombre}
-                                                            className="producto-img"
-                                                        />
-
-                                                    ) : (
-
-                                                        <div className="producto-placeholder">
-                                                            📦
-                                                        </div>
-
-                                                    )}
-
-                                                    <div>
-
-                                                        <h6 className="fw-bold mb-1 text-dark">
-                                                            {venta.productos?.nombre || "Sin producto"}
-                                                        </h6>
-
-                                                        <small className="table-subtitle">
-                                                            Venta registrada
-                                                        </small>
-
-                                                    </div>
-
-                                                </div>
-
-                                            </td>
-
-                                            <td>
-
-                                                <Badge
-                                                    bg="light"
-                                                    text="dark"
-                                                    className="border px-3 py-2 rounded-pill"
-                                                >
-                                                    {venta.productos?.categoria || "Sin categoría"}
-                                                </Badge>
-
-                                            </td>
-
-                                            <td className="fw-semibold text-dark">
-                                                {venta.cantidad}
-                                            </td>
-
-                                            <td className="fw-bold text-success">
-                                                C$ {Number(venta.subtotal).toFixed(2)}
-                                            </td>
-
-                                            <td>
-
-                                                <Badge
-                                                    bg="success"
-                                                    className="px-3 py-2 rounded-pill"
-                                                >
-                                                    Completada
-                                                </Badge>
-
-                                            </td>
-
-                                        </tr>
-
-                                    ))
-
-                                ) : (
-
-                                    <tr>
-
-                                        <td
-                                            colSpan="6"
-                                            className="text-center py-5"
-                                        >
-
-                                            <div className="empty-state">
-
-                                                <div className="empty-icon">
-                                                    📊
-                                                </div>
-
-                                                <h3 className="fw-bold mt-4 text-dark">
-                                                    No hay ventas registradas
-                                                </h3>
-
-                                                <p className="table-subtitle">
-                                                    Aún no existen movimientos en el sistema
-                                                </p>
-
-                                            </div>
-
-                                        </td>
-
-                                    </tr>
-
-                                )}
-
-                            </tbody>
-
-                        </Table>
-
-                    )}
-
-                </Card>
-
-            </Container>
-
-            <style>{`
-
-                .dashboard-bg{
-                    min-height:100vh;
-                    background:
-                    radial-gradient(circle at top left,#1e3a8a 0%,#0f172a 45%,#020617 100%);
-                }
-
-                .hero-section{
-                    position:relative;
-                    overflow:hidden;
-                    border-radius:35px;
-                    padding:60px;
-                    background:
-                    linear-gradient(135deg,
-                    rgba(37,99,235,.95),
-                    rgba(15,23,42,.95));
-                    box-shadow:
-                    0 20px 60px rgba(0,0,0,.35);
-                }
-
-                .hero-overlay{
-                    position:absolute;
-                    top:-100px;
-                    right:-100px;
-                    width:300px;
-                    height:300px;
-                    background:rgba(255,255,255,.08);
-                    border-radius:50%;
-                }
-
-                .hero-title{
-                    color:white;
-                    font-size:3.5rem;
-                    font-weight:800;
-                    margin-bottom:20px;
-                    line-height:1.1;
-                }
-
-                .hero-text{
-                    color:rgba(255,255,255,.85);
-                    font-size:1.1rem;
-                    max-width:650px;
-                    line-height:1.8;
-                }
-
-                .hero-mini-card{
-                    border-radius:28px;
-                    background:white;
-                    box-shadow:0 15px 40px rgba(0,0,0,.25);
-                }
-
-                .mini-text{
-                    color:#64748b;
-                }
-
-                .hero-icon{
-                    width:70px;
-                    height:70px;
-                    border-radius:22px;
-                    background:#eff6ff;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    font-size:2rem;
-                }
-
-                .kpi-card{
-                    border-radius:28px;
-                    overflow:hidden;
-                    transition:.35s ease;
-                    box-shadow:0 15px 40px rgba(0,0,0,.25);
-                }
-
-                .kpi-card:hover{
-                    transform:translateY(-8px);
-                }
-
-                .ingresos-card{
-                    background:linear-gradient(135deg,#059669,#10b981);
-                }
-
-                .ventas-card{
-                    background:linear-gradient(135deg,#2563eb,#3b82f6);
-                }
-
-                .productos-card{
-                    background:linear-gradient(135deg,#7c3aed,#8b5cf6);
-                }
-
-                .kpi-label{
-                    color:rgba(255,255,255,.75);
-                    font-size:.85rem;
-                    font-weight:700;
-                    letter-spacing:1px;
-                    margin-bottom:12px;
-                }
-
-                .kpi-icon{
-                    width:75px;
-                    height:75px;
-                    border-radius:24px;
-                    background:rgba(255,255,255,.15);
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    font-size:2rem;
-                }
-
-                .table-card{
-                    border-radius:30px;
-                    box-shadow:0 15px 50px rgba(0,0,0,.25);
-                    background:white;
-                }
-
-                .table-header{
-                    padding:30px;
-                    border-bottom:1px solid #e5e7eb;
-                    background:white;
-                }
-
-                .table-subtitle{
-                    color:#64748b;
-                }
-
-                .custom-table thead{
-                    background:#f8fafc;
-                }
-
-                .custom-table thead th{
-                    padding:20px;
-                    border:none;
-                    color:#0f172a;
-                    font-size:.95rem;
-                    font-weight:700;
-                }
-
-                .custom-table tbody td{
-                    padding:20px;
-                    vertical-align:middle;
-                    border-color:#f1f5f9;
-                }
-
-                .custom-table tbody tr{
-                    transition:.25s ease;
-                }
-
-                .custom-table tbody tr:hover{
-                    background:#f8fafc;
-                }
-
-                .producto-img{
-                    width:65px;
-                    height:65px;
-                    object-fit:cover;
-                    border-radius:18px;
-                    border:3px solid #f1f5f9;
-                }
-
-                .producto-placeholder{
-                    width:65px;
-                    height:65px;
-                    border-radius:18px;
-                    background:#f1f5f9;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    font-size:1.7rem;
-                }
-
-                .empty-state{
-                    padding:40px;
-                }
-
-                .empty-icon{
-                    font-size:5rem;
-                }
-
-                @media(max-width:768px){
-
-                    .hero-section{
-                        padding:35px 25px;
-                    }
-
-                    .hero-title{
-                        font-size:2.3rem;
-                    }
-
-                }
-
-            `}</style>
-
-        </div>
-    );
-};
-
-export default DashboardVentas;
+import { useEffect, useState } from "react";
+import {
+    Container,
+    Row,
+    Col,
+    Card,
+    Spinner,
+    Table,
+    Badge,
+    ProgressBar
+} from "react-bootstrap";
+
+import { supabase } from "../database/supabaseconfig";
+
+const DashboardVentas = () => {
+
+    const [ventas, setVentas] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        cargarVentas();
+    }, []);
+
+    const cargarVentas = async () => {
+        try {
+            setLoading(true);
+
+            const { data, error } = await supabase
+                .from("detalle_venta")
+                .select(`
+                    *,
+                    productos (
+                        id_producto,
+                        nombre,
+                        categoria,
+                        imagen
+                    )
+                `)
+                .order("id_detalle", { ascending: false });
+
+            if (error) {
+                console.error(error);
+                return;
+            }
+
+            setVentas(data || []);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const totalIngresos = ventas.reduce(
+        (acc, venta) => acc + Number(venta.subtotal || 0),
+        0
+    );
+
+    const totalVentas = ventas.length;
+
+    const totalProductos = ventas.reduce(
+        (acc, venta) => acc + Number(venta.cantidad || 0),
+        0
+    );
+
+    const ticketPromedio = totalVentas > 0 ? totalIngresos / totalVentas : 0;
+
+    const rendimiento = Math.min(100, Math.round((totalVentas / Math.max(totalVentas, 10)) * 85 + 15));
+
+    const kpis = [
+        {
+            label: "Ingresos totales",
+            valor: `C$ ${totalIngresos.toFixed(2)}`,
+            sub: "Ventas acumuladas",
+            icono: "bi-cash-stack",
+            clase: "dashboard-kpi--green",
+        },
+        {
+            label: "Operaciones",
+            valor: totalVentas,
+            sub: "Líneas de venta",
+            icono: "bi-receipt",
+            clase: "dashboard-kpi--blue",
+        },
+        {
+            label: "Unidades vendidas",
+            valor: totalProductos,
+            sub: "Productos comercializados",
+            icono: "bi-box-seam",
+            clase: "dashboard-kpi--purple",
+        },
+        {
+            label: "Ticket promedio",
+            valor: `C$ ${ticketPromedio.toFixed(2)}`,
+            sub: "Por operación",
+            icono: "bi-graph-up",
+            clase: "dashboard-kpi--pink",
+        },
+    ];
+
+    return (
+        <Container fluid="lg" className="px-0">
+            <div className="page-hero dashboard-hero animate-fade-left mb-4">
+                <Row className="align-items-center g-4">
+                    <Col lg={8}>
+                        <span className="home-kicker">Resumen</span>
+                        <h1 className="display-5 fw-bold mb-2">Dashboard de ventas</h1>
+                        <p className="lead mb-0">
+                            Estadísticas, ingresos y productos vendidos en tiempo real.
+                        </p>
+                    </Col>
+                    <Col lg={4}>
+                        <Card className="dashboard-mini-card border-0">
+                            <Card.Body>
+                                <div className="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <small className="dashboard-mini-label">Actividad</small>
+                                        <h5 className="fw-bold mb-0">En línea</h5>
+                                    </div>
+                                    <span className="dashboard-mini-icon">
+                                        <i className="bi bi-activity" aria-hidden="true" />
+                                    </span>
+                                </div>
+                                <ProgressBar now={rendimiento} className="dashboard-progress rounded-pill" />
+                                <small className="dashboard-mini-label mt-2 d-block">
+                                    {totalVentas} movimientos registrados
+                                </small>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                </Row>
+            </div>
+
+            <Row className="g-3 g-md-4 stagger-children mb-4">
+                {kpis.map((kpi) => (
+                    <Col sm={6} lg={3} key={kpi.label}>
+                        <Card className={`dashboard-kpi ${kpi.clase} h-100`}>
+                            <Card.Body className="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <p className="dashboard-kpi-label">{kpi.label}</p>
+                                    <h2 className="dashboard-kpi-value">{kpi.valor}</h2>
+                                    <small className="dashboard-kpi-sub">{kpi.sub}</small>
+                                </div>
+                                <span className="dashboard-kpi-icon">
+                                    <i className={`bi ${kpi.icono}`} aria-hidden="true" />
+                                </span>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                ))}
+            </Row>
+
+            <Card className="data-table-card border-0 overflow-hidden animate-fade-right">
+                <div className="table-hero-bar d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <h4 className="fw-bold mb-0">
+                            <i className="bi bi-clock-history me-2" aria-hidden="true" />
+                            Historial de ventas
+                        </h4>
+                        <small className="table-hero-sub">Últimos movimientos del sistema</small>
+                    </div>
+                    <span className="table-hero-count">{ventas.length} registros</span>
+                </div>
+
+                {loading ? (
+                    <div className="text-center py-5 fade-in">
+                        <Spinner animation="border" variant="primary" />
+                        <p className="mt-3 text-muted loading-pulse">Cargando información…</p>
+                    </div>
+                ) : (
+                    <div className="table-responsive">
+                        <Table hover className="align-middle mb-0 data-table">
+                            <thead>
+                                <tr>
+                                    <th className="col-id">ID</th>
+                                    <th className="col-producto">Producto</th>
+                                    <th className="d-none d-md-table-cell">Categoría</th>
+                                    <th>Cantidad</th>
+                                    <th>Subtotal</th>
+                                    <th className="d-none d-sm-table-cell">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {ventas.length > 0 ? (
+                                    ventas.map((venta, index) => (
+                                        <tr
+                                            key={venta.id_detalle}
+                                            className="table-row-animate"
+                                            style={{ animationDelay: `${index * 0.03}s` }}
+                                        >
+                                            <td className="col-id fw-semibold text-muted">
+                                                #{venta.id_detalle}
+                                            </td>
+                                            <td className="col-producto">
+                                                <div className="table-product-cell">
+                                                    {venta.productos?.imagen ? (
+                                                        <img
+                                                            src={venta.productos.imagen}
+                                                            alt={venta.productos.nombre}
+                                                            className="table-product-thumb"
+                                                        />
+                                                    ) : (
+                                                        <div className="table-product-thumb table-product-thumb--empty">
+                                                            <i className="bi bi-box-seam" aria-hidden="true" />
+                                                        </div>
+                                                    )}
+                                                    <span
+                                                        className="table-product-name"
+                                                        title={venta.productos?.nombre}
+                                                    >
+                                                        {venta.productos?.nombre || "Sin producto"}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="d-none d-md-table-cell">
+                                                <Badge bg="primary" pill className="table-badge">
+                                                    {venta.productos?.categoria || "—"}
+                                                </Badge>
+                                            </td>
+                                            <td className="fw-semibold">{venta.cantidad}</td>
+                                            <td>
+                                                <span className="table-price">
+                                                    C$ {Number(venta.subtotal).toFixed(2)}
+                                                </span>
+                                            </td>
+                                            <td className="d-none d-sm-table-cell">
+                                                <Badge bg="success" pill className="table-badge">
+                                                    Completada
+                                                </Badge>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="6" className="text-center py-5">
+                                            <div className="table-empty-state py-4">
+                                                <i className="bi bi-bar-chart table-empty-icon" aria-hidden="true" />
+                                                <h5 className="fw-bold mt-3">No hay ventas registradas</h5>
+                                                <p className="text-muted mb-0">
+                                                    Aún no existen movimientos en el sistema
+                                                </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </Table>
+                    </div>
+                )}
+            </Card>
+        </Container>
+    );
+};
+
+export default DashboardVentas;

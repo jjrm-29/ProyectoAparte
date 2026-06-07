@@ -12,9 +12,6 @@ const ModalEliminacion = ({
     if (!item) return null;
 
     const titulo = tipo === "categoria" ? "Eliminar Categoría" : "Eliminar Producto";
-    const mensaje = tipo === "categoria"
-        ? "¿Estás seguro de que deseas eliminar esta categoría?"
-        : "¿Estás seguro de que deseas eliminar este producto?";
 
     return (
         <Modal
