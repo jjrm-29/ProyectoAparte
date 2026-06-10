@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Container, Row, Col, Card, Button, Spinner, Badge } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "../database/supabaseconfig";
+import PageHero from "../components/navegacion/PageHero";
 
 const ProductoDetalle = () => {
     const { id } = useParams();
@@ -10,18 +12,27 @@ const ProductoDetalle = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const productosEjemplo = [
-            { id: 1, nombre: "Café Molido Premium", precio: 150, categoria: "Bebidas", imagen: "https://http2.mlstatic.com/D_NQ_NP_706638-MCO82270894377_022025-O.webp", descripcion: "Café 100% arábica tostado nicaragüense" },
-            { id: 2, nombre: "Arroz Integral 1LB", precio: 35, categoria: "Alimentos", imagen: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=600&h=600&fit=crop", descripcion: "Arroz integral de larga duración" },
-            { id: 3, nombre: "Aceite de Oliva Extra Virgen", precio: 120, categoria: "Despensa", imagen: "https://tse1.mm.bing.net/th/id/OIP.t4wQKuIzZDUUTERtSad8CAHaJQ?rs=1&pid=ImgDetMain&o=7&rm=3", descripcion: "Aceite de oliva importado 500ml" }
-        ];
+        const cargarProducto = async () => {
+            try {
+                setLoading(true);
 
-        const productoEncontrado = productosEjemplo.find(p => p.id === parseInt(id));
+                const { data, error } = await supabase
+                    .from("productos")
+                    .select("*")
+                    .eq("id_producto", id)
+                    .single();
 
-        setTimeout(() => {
-            setProducto(productoEncontrado);
-            setLoading(false);
-        }, 400);
+                if (error) throw error;
+                setProducto(data);
+            } catch (err) {
+                console.error("Error al cargar producto:", err);
+                setProducto(null);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        cargarProducto();
     }, [id]);
 
     const handleImageError = (e) => {
@@ -30,94 +41,104 @@ const ProductoDetalle = () => {
 
     if (loading) {
         return (
-            <Container className="py-5 text-center">
-                <Spinner animation="border" variant="primary" />
-                <p className="mt-3">Cargando producto...</p>
+            <Container fluid="lg" className="view-page">
+                <div className="text-center py-5 fade-in">
+                    <Spinner animation="border" variant="primary" />
+                    <p className="mt-3 text-muted loading-pulse">Cargando producto…</p>
+                </div>
             </Container>
         );
     }
 
     if (!producto) {
         return (
-            <Container className="py-5 text-center">
-                <h3>Producto no encontrado</h3>
-                <Button onClick={() => navigate("/catalogo")}>
-                    Volver
-                </Button>
+            <Container fluid="lg" className="view-page">
+                <Card className="view-empty-card text-center animate-scale-in">
+                    <Card.Body className="py-5">
+                        <i className="bi bi-box-seam view-empty-icon" aria-hidden="true" />
+                        <h3 className="fw-bold mt-3">Producto no encontrado</h3>
+                        <p className="text-muted mb-4">El artículo que buscas no existe o fue eliminado.</p>
+                        <Button
+                            variant="primary"
+                            className="rounded-pill px-4 btn-interactive"
+                            onClick={() => navigate("/catalogo")}
+                        >
+                            <i className="bi bi-arrow-left me-2" aria-hidden="true" />
+                            Volver al catálogo
+                        </Button>
+                    </Card.Body>
+                </Card>
             </Container>
         );
     }
 
     return (
-        <Container className="margen-superior-main py-5">
-            <Button 
-                variant="light" 
-                className="mb-4 shadow-sm"
-                onClick={() => navigate(-1)}
-            >
-                ← Volver
-            </Button>
+        <Container fluid="lg" className="px-0 view-page">
+            <PageHero
+                kicker={producto.categoria || "Producto"}
+                title={producto.nombre}
+                subtitle={producto.descripcion || "Detalle del producto en catálogo."}
+                action={
+                    <Button
+                        variant="light"
+                        className="btn-hero-cta rounded-pill px-4 btn-interactive"
+                        onClick={() => navigate(-1)}
+                    >
+                        <i className="bi bi-arrow-left me-2" aria-hidden="true" />
+                        Volver
+                    </Button>
+                }
+            />
 
-            <Row className="justify-content-center">
-                <Col lg={10}>
-                    <Card className="border-0 shadow-lg rounded-4 overflow-hidden">
-                        <Row className="g-0">
-
-                            {/* Imagen */}
-                            <Col md={6}>
+            <Card className="view-detail-card animate-fade-right overflow-hidden">
+                <Card.Body className="p-4 p-md-5">
+                    <Row className="g-4 align-items-center">
+                        <Col md={5} className="text-center">
+                            <div className="view-detail-image-wrap">
                                 <img
-                                    src={producto.imagen}
+                                    src={producto.imagen || "https://via.placeholder.com/600x600?text=Sin+Imagen"}
                                     alt={producto.nombre}
+                                    className="view-detail-image"
                                     onError={handleImageError}
-                                    className="w-100 h-100"
-                                    style={{ objectFit: "cover", minHeight: "400px" }}
                                 />
-                            </Col>
+                            </div>
+                        </Col>
 
-                            {/* Info */}
-                            <Col md={6}>
-                                <Card.Body className="p-5 d-flex flex-column h-100">
+                        <Col md={7}>
+                            <div className="d-flex flex-wrap gap-2 mb-3">
+                                <Badge bg="primary" pill className="px-3 py-2">
+                                    {producto.categoria || "Sin categoría"}
+                                </Badge>
+                                <Badge
+                                    bg={parseInt(producto.stock, 10) > 0 ? "success" : "danger"}
+                                    pill
+                                    className="px-3 py-2"
+                                >
+                                    Stock: {producto.stock ?? 0}
+                                </Badge>
+                            </div>
 
-                                    <Badge bg="secondary" className="mb-3 w-fit">
-                                        {producto.categoria}
-                                    </Badge>
+                            <h2 className="view-detail-price mb-3">
+                                C$ {Number(producto.precio).toFixed(2)}
+                            </h2>
 
-                                    <h2 className="fw-bold mb-3">
-                                        {producto.nombre}
-                                    </h2>
+                            {producto.descripcion && (
+                                <p className="text-muted fs-5 mb-4">{producto.descripcion}</p>
+                            )}
 
-                                    <h3 className="text-success fw-bold mb-4">
-                                        C$ {producto.precio.toLocaleString()}
-                                    </h3>
-
-                                    <p className="text-muted flex-grow-1">
-                                        {producto.descripcion}
-                                    </p>
-
-                                    <div className="d-grid gap-3 mt-4">
-                                        <Button
-                                            variant="primary"
-                                            size="lg"
-                                            onClick={() => alert(`✅ ${producto.nombre} agregado`)}
-                                        >
-                                            🛒 Agregar al carrito
-                                        </Button>
-
-                                        <Button
-                                            variant="outline-secondary"
-                                            onClick={() => navigate("/catalogo")}
-                                        >
-                                            Seguir comprando
-                                        </Button>
-                                    </div>
-
-                                </Card.Body>
-                            </Col>
-
-                        </Row>
-                    </Card>
-                </Col>
-            </Row>
+                            <Button
+                                variant="primary"
+                                size="lg"
+                                className="rounded-pill px-4 btn-interactive"
+                                onClick={() => navigate("/catalogo")}
+                            >
+                                <i className="bi bi-grid me-2" aria-hidden="true" />
+                                Ver más productos
+                            </Button>
+                        </Col>
+                    </Row>
+                </Card.Body>
+            </Card>
         </Container>
     );
 };

@@ -20,13 +20,14 @@ import "./App.css";
 const AppRoutes = () => {
   const location = useLocation();
   const esLogin = location.pathname === "/login";
+  const esLanding = location.pathname === "/";
 
   return (
     <>
       <SplashCarga />
       <Encabezado />
 
-      <main className={esLogin ? "" : "margen-superior-main"}>
+      <main className={esLogin ? "" : esLanding ? "landing-main" : "margen-superior-main"}>
         <div key={location.pathname} className="page-enter">
           <Routes location={location}>
 

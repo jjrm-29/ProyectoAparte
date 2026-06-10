@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
     Modal,
     Button,
@@ -12,11 +12,20 @@ import {
     InputGroup
 } from "react-bootstrap";
 
+const CATEGORIAS_DEFAULT = [
+    "Bebidas",
+    "Alimentos",
+    "Despensa",
+    "Lácteos",
+    "Limpieza"
+];
+
 const FormularioRegistroProducto = ({
     show,
     onHide,
     onGuardar,
-    loading = false
+    loading = false,
+    categorias = CATEGORIAS_DEFAULT,
 }) => {
 
     const [formData, setFormData] = useState({
@@ -33,14 +42,6 @@ const FormularioRegistroProducto = ({
     const [formError, setFormError] = useState("");
 
     const fileInputRef = useRef(null);
-
-    const categorias = [
-        "Bebidas",
-        "Alimentos",
-        "Despensa",
-        "Lácteos",
-        "Limpieza"
-    ];
 
     // =========================
     // RESET
@@ -61,6 +62,12 @@ const FormularioRegistroProducto = ({
         setPreviewImage(null);
         setFormError("");
     };
+
+    useEffect(() => {
+        if (!show) {
+            resetForm();
+        }
+    }, [show]);
 
     // =========================
     // INPUTS

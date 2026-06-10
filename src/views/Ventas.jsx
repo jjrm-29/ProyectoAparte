@@ -1,10 +1,7 @@
 import { useState } from "react";
 import {
   Container,
-  Row,
-  Col,
   Button,
-  Badge
 } from "react-bootstrap";
 
 import { supabase } from "../database/supabaseconfig";
@@ -13,6 +10,7 @@ import ModalRegistroVenta from "../components/Venta/ModalRegistroVenta";
 import ModalEditarVenta from "../components/Venta/ModalEditarVenta";
 import ModalEliminarVenta from "../components/Venta/ModalEliminarVenta";
 import TablaVenta from "../components/Venta/TablaVenta";
+import PageHero from "../components/navegacion/PageHero";
 
 const Ventas = () => {
 
@@ -80,55 +78,32 @@ const Ventas = () => {
 
   return (
 
-    <Container fluid="lg" className="px-0">
+    <Container fluid="lg" className="px-0 view-page">
 
-      <div className="page-hero animate-fade-left mb-4">
+      <PageHero
+        kicker="Panel administrativo"
+        title="Gestión de Ventas"
+        subtitle="Administra todas las ventas de manera rápida y moderna."
+        action={
+          <Button
+            type="button"
+            size="lg"
+            onClick={() => setShowRegistro(true)}
+            className="btn-hero-cta rounded-pill px-4 btn-interactive"
+          >
+            <i className="bi bi-plus-lg me-2" aria-hidden="true" />
+            Registrar venta
+          </Button>
+        }
+      />
 
-        <Row className="align-items-center">
-
-          <Col lg={8}>
-
-            <Badge
-              bg="light"
-              text="dark"
-              className="rounded-pill px-3 py-2 fw-semibold mb-3"
-            >
-              PANEL ADMINISTRATIVO
-            </Badge>
-
-            <h1 className="fw-bold display-5">
-              Gestión de Ventas
-            </h1>
-
-            <p className="fs-5">
-              Administra todas las ventas de manera rápida y moderna
-            </p>
-
-          </Col>
-
-          <Col lg={4} className="text-lg-end mt-4 mt-lg-0">
-
-            <Button
-              type="button"
-              size="lg"
-              onClick={() => setShowRegistro(true)}
-              className="btn-hero-cta rounded-pill px-4 btn-interactive"
-            >
-              ➕ Registrar Venta
-            </Button>
-
-          </Col>
-
-        </Row>
-
-      </div>
-
-      {/* TABLA */}
+      <div className="animate-fade-right">
 
       <TablaVenta
         abrirEditar={abrirEditar}
         abrirEliminar={abrirEliminar}
       />
+      </div>
 
       {/* MODAL REGISTRO */}
 

@@ -1,19 +1,19 @@
 import { useState, useEffect } from "react";
 import {
   Container,
-  Row,
-  Col,
   Form,
   Spinner,
   Card,
-  Badge,
   InputGroup,
+  Row,
+  Col,
 } from "react-bootstrap";
 
 import { useSearchParams } from "react-router-dom";
 
 import { supabase } from "../database/supabaseconfig";
 import TarjetaCatalogo from "../components/catalogo/TarjetaCatalogo";
+import PageHero from "../components/navegacion/PageHero";
 
 const Catalogo = () => {
   const [searchParams] = useSearchParams();
@@ -75,43 +75,24 @@ const Catalogo = () => {
   });
 
   return (
-    <Container fluid="lg" className="px-0">
-      <Card className="catalog-hero border-0 mb-4 animate-fade-left">
-        <Card.Body className="catalog-hero-content p-4 p-md-5">
-          <Row className="align-items-center">
-            <Col lg={8}>
-              <Badge
-                bg="light"
-                text="dark"
-                className="rounded-pill px-3 py-2 mb-3 fw-semibold"
-              >
-                Catálogo digital
-              </Badge>
+    <Container fluid="lg" className="px-0 view-page">
+      <PageHero
+        kicker="Catálogo digital"
+        title={
+          categoriaFiltro !== "Todas"
+            ? `Categoría: ${categoriaFiltro}`
+            : "Explora nuestro catálogo"
+        }
+        subtitle="Productos organizados por categorías con precios y disponibilidad actualizada."
+        aside={
+          <i
+            className="bi bi-basket3 view-hero-aside-icon"
+            aria-hidden="true"
+          />
+        }
+      />
 
-              <h1 className="fw-bold display-6 mb-3">
-                {categoriaFiltro !== "Todas"
-                  ? `Categoría: ${categoriaFiltro}`
-                  : "Explora nuestro catálogo"}
-              </h1>
-
-              <p className="mb-0 opacity-90" style={{ fontSize: "1.05rem" }}>
-                Productos organizados por categorías con precios y disponibilidad
-                actualizada.
-              </p>
-            </Col>
-
-            <Col lg={4} className="text-center d-none d-lg-block">
-              <i
-                className="bi bi-basket3"
-                style={{ fontSize: "5rem", opacity: 0.85 }}
-                aria-hidden="true"
-              />
-            </Col>
-          </Row>
-        </Card.Body>
-      </Card>
-
-      <Card className="mb-4 animate-fade-right">
+      <Card className="view-filter-card animate-fade-right mb-4">
         <Card.Body className="p-4">
           <Row className="g-3 align-items-center">
             <Col lg={8}>
@@ -145,9 +126,9 @@ const Catalogo = () => {
         </Card.Body>
       </Card>
 
-      <Row className="g-3 mb-4 stagger-children">
+      <Row className="g-3 mb-4 stagger-children view-stats-row">
         <Col md={4}>
-          <Card className="h-100">
+          <Card className="view-stat-card h-100">
             <Card.Body className="d-flex justify-content-between align-items-center">
               <div>
                 <p className="text-muted mb-1 small fw-semibold text-uppercase">
@@ -163,7 +144,7 @@ const Catalogo = () => {
         </Col>
 
         <Col md={4}>
-          <Card className="h-100">
+          <Card className="view-stat-card h-100">
             <Card.Body className="d-flex justify-content-between align-items-center">
               <div>
                 <p className="text-muted mb-1 small fw-semibold text-uppercase">
@@ -179,7 +160,7 @@ const Catalogo = () => {
         </Col>
 
         <Col md={4}>
-          <Card className="h-100">
+          <Card className="view-stat-card h-100">
             <Card.Body className="d-flex justify-content-between align-items-center">
               <div>
                 <p className="text-muted mb-1 small fw-semibold text-uppercase">

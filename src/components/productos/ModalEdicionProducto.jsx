@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Modal,
     Form,
@@ -11,31 +11,49 @@ import {
     InputGroup
 } from "react-bootstrap";
 
+const CATEGORIAS_DEFAULT = [
+    "Bebidas",
+    "Alimentos",
+    "Despensa",
+    "Lácteos",
+    "Limpieza"
+];
+
 const ModalEdicionProducto = ({
     show,
     onHide,
     producto,
     onGuardar,
-    loading
+    loading,
+    categorias = CATEGORIAS_DEFAULT,
 }) => {
 
     const [formData, setFormData] = useState({
-        nombre: producto?.nombre || "",
-        precio: producto?.precio || "",
-        stock: producto?.stock || "",
-        categoria: producto?.categoria || "",
-        descripcion: producto?.descripcion || "",
-        imagen: producto?.imagen || "",
+        nombre: "",
+        precio: "",
+        stock: "",
+        categoria: "",
+        descripcion: "",
+        imagen: "",
         archivo: null
     });
 
-    const categorias = [
-        "Bebidas",
-        "Alimentos",
-        "Despensa",
-        "Lácteos",
-        "Limpieza"
-    ];
+    const [formError, setFormError] = useState("");
+
+    useEffect(() => {
+        if (show && producto) {
+            setFormData({
+                nombre: producto.nombre || "",
+                precio: producto.precio ?? "",
+                stock: producto.stock ?? "",
+                categoria: producto.categoria || "",
+                descripcion: producto.descripcion || "",
+                imagen: producto.imagen || "",
+                archivo: null,
+            });
+            setFormError("");
+        }
+    }, [show, producto]);
 
     // =========================
     // INPUTS
@@ -75,6 +93,22 @@ const ModalEdicionProducto = ({
     // =========================
 
     const handleActualizar = async () => {
+        setFormError("");
+
+        if (!formData.nombre.trim()) {
+            setFormError("El nombre del producto es obligatorio");
+            return;
+        }
+
+        if (!formData.precio || parseFloat(formData.precio) <= 0) {
+            setFormError("El precio debe ser mayor a 0");
+            return;
+        }
+
+        if (!formData.categoria) {
+            setFormError("Debes seleccionar una categoría");
+            return;
+        }
 
         await onGuardar(formData);
     };
@@ -113,6 +147,12 @@ const ModalEdicionProducto = ({
             {/* BODY */}
 
             <Modal.Body className="pt-4">
+
+                {formError && (
+                    <div className="alert alert-danger rounded-4 border-0 mb-4">
+                        {formError}
+                    </div>
+                )}
 
                 <Row className="g-4">
 

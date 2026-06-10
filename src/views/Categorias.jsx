@@ -22,6 +22,7 @@ import TarjetaCategoria from "../components/categorias/TarjetaCategoria";
 
 import CuadroBusquedas from "../components/busquedas/CuadroBusquedas";
 import Paginacion from "../components/ordenamiento/Paginacion";
+import PageHero from "../components/navegacion/PageHero";
 
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -215,15 +216,13 @@ const Categorias = () => {
 
   return (
 
-    <Container fluid="lg" className="px-0">
+    <Container fluid="lg" className="px-0 view-page">
 
-      <div className="page-hero animate-fade-left mb-4">
-        <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
-          <div>
-            <span className="home-kicker">Organización</span>
-            <h1 className="display-6 fw-bold mb-2">Gestión de Categorías</h1>
-            <p className="lead mb-0">Administra todas las categorías registradas</p>
-          </div>
+      <PageHero
+        kicker="Organización"
+        title="Gestión de Categorías"
+        subtitle="Administra todas las categorías registradas en tu catálogo."
+        action={
           <Button
             variant="light"
             size="lg"
@@ -233,10 +232,10 @@ const Categorias = () => {
             <i className="bi bi-plus-lg me-2" aria-hidden="true" />
             Nueva categoría
           </Button>
-        </div>
-      </div>
+        }
+      />
 
-      <Card className="border-0 shadow-sm rounded-4 mb-4 filter-card animate-scale-in">
+      <Card className="view-filter-card animate-scale-in mb-4">
 
         <Card.Body>
 
